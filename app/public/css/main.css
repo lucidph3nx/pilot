@@ -1,0 +1,74 @@
+h2 {
+  color: white;
+  text-align: center;
+}
+
+body {
+  font-size: 1.1rem;
+  background-color: #1f2122;
+}
+
+.sideNav{
+  color: white;
+}
+
+.table td, .table th {
+  padding: 0.4rem
+}
+
+.early {
+  font-weight: bold;
+  color: black;
+  background-color: #3BB9FF;
+}
+.okay {
+  color: #9AFE2E;/*#c4d79b;*/
+}
+.late {
+  font-weight: bold;
+  color: black;
+  background-color: #ff9966;
+}
+.verylate {
+  font-weight: bold;
+  background-color: #c00000;
+}
+.delayrisk {
+  font-weight: bold;
+  background-color: #c00000;
+}
+.linkingissue{
+  font-weight: bold;
+  background-color: #c00000;
+}
+.nolink{
+  font-weight: bold;
+  background-color: #c00000;
+}
+.intunnel{
+  font-weight: bold;
+  color: black;
+  background-color: #b344f4;
+}
+.awaitingdeparture{
+  color: #9AFE2E;
+}
+.arriving{
+  color: yellow;
+}
+
+.currentstation {
+  color: yellow;/*#f0cf7e;*/
+}
+
+.columncenter {
+  text-align: center;
+}
+.columnright {
+  text-align: right;
+}
+
+.trainnumber{
+  font-weight: bold;
+  text-align: center;
+}

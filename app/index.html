@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="public/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="public/css/main.css" rel="stylesheet" />
+    <link href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Angular Material requires Angular.js Libraries -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
+
+    <!-- Angular Material Library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
+  </head>
+
+  <body ng-app="RailVis">
+
+    <div class="sideNav" ng-controller="AppController" layout="column" ng-cloak>
+      <side-nav></side-nav>
+    </div>
+
+    <div class="Variance" ng-controller="VarianceController">
+      <div class="container-fluid">
+            <h2>{{ time }}</h2>
+          <variance-table currentServices="currentServices"></variance-table>
+      </div>
+    </div>
+
+    <!-- Modules -->
+    <script src="public/js/app.js"></script>
+
+    <!-- Controllers -->
+    <script src="public/js/controllers/AppController.js"></script>
+    <script src="public/js/controllers/VarianceController.js"></script>
+    <!-- Services -->
+    <script src="public/js/services/currentServices.js"></script>
+
+    <!-- Directives -->
+    <script src="public/js/directives/sideNav.js"></script>
+    <script src="public/js/directives/varianceTable.js"></script>
+
+  </body>
+</html>
