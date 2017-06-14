@@ -29,7 +29,7 @@ body {
 .late {
   font-weight: bold;
   color: black;
-  background-color: #ff9966;
+  background-color: orange;
 }
 .verylate {
   font-weight: bold;
@@ -49,8 +49,8 @@ body {
 }
 .intunnel{
   font-weight: bold;
-  color: black;
-  background-color: #b344f4;
+  color: #c370f4;
+  /*background-color: #b344f4;*/
 }
 .awaitingdeparture{
   color: #9AFE2E;
