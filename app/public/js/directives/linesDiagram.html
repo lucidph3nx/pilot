@@ -1,0 +1,49 @@
+<!--
+<div class="JVLDiagram">
+  <p>Johnsonville Line</p>
+    <div class="Service" ng-repeat="service in currentServices | orderBy:['kiwirail','departs']:sortReverse | filter: { direction: 'UP', KRline: 'JVL' }" ng-style="{left: {{(service.meterage / 10500 ) * 95}}+ '%'}">
+      {{ service.service_id }}
+      <i class="material-icons" style="font-size:25px;">train</i>
+      {{ service.varianceMinutes }}
+      <i class="material-icons" style="font-size:15px;">arrow forward</i>
+    </div>
+
+    <div class="LineDrawing">
+    </div>
+
+    <div class="Service" ng-repeat="service in currentServices | orderBy:['kiwirail','departs']:sortReverse | filter: { direction: 'DOWN', KRline: 'JVL' }" ng-style="{left: {{(service.meterage / 10500 ) * 95}}+ '%'}">
+      <i class="material-icons" style="font-size:15px;">arrow back</i>
+      {{ service.service_id }}
+      <i class="material-icons" style="font-size:25px;">train</i>
+      {{ service.varianceMinutes }}
+    </div>
+</div>
+-->
+
+<div class="WRLDiagram">
+  <p style="color:white;">Hutt Valley Line</p>
+  <div class="Service" ng-repeat="service in currentServices | orderBy:['kiwirail','departs']:sortReverse | filter: { direction: 'UP', KRline: 'WRL' }" ng-style="{left: {{(service.meterage / 90960 ) * 95}}+ '%'}">
+    {{ service.service_id }}
+    <i class="material-icons" style="font-size:25px;">train</i>
+    {{ service.varianceMinutes }}
+    >
+  </div>
+
+  <div class="LineDrawing">
+  </div>
+
+  <div class="Service" ng-repeat="service in currentServices | orderBy:['kiwirail','departs']:sortReverse | filter: { direction: 'DOWN', KRline: 'WRL' }" ng-style="{left: {{(service.meterage / 90960 ) * 95}}+ '%'}">
+    <
+    {{ service.service_id }}
+    <i class="material-icons" style="font-size:25px;">train</i>
+    {{ service.varianceMinutes }}
+  </div>
+</div>
+<!--
+<div class="KPLDiagram">
+  <p style="color:white;">Kapiti Line</p>
+  <div class="Service" ng-repeat="service in currentServices | orderBy:['kiwirail','departs']:sortReverse | filter: { KRline: 'NIMT' }">
+    <i class="material-icons">train</i> {{ service.service_id}}
+  </div>
+</div>
+-->

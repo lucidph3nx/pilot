@@ -10,7 +10,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
-        <link href="public/css/main.css" rel="stylesheet" />
+    <link href="public/css/main.css" rel="stylesheet" />
+    <link href="public/css/lineDiagram.css" rel="stylesheet" />
     <!-- Angular Material Library -->
     <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
   </head>
@@ -20,11 +21,24 @@
       <div class="sideNav" layout="column" ng-cloak>
         <side-nav></side-nav>
       </div>
-      <div class="Variance">
-        <div class="container-fluid">
-            <variance-table currentServices="currentServices"></variance-table>
+
+      <div ng-switch="toShow">
+        <div ng-switch-when="Variance">
+          <div class="Variance">
+            <div class="container-fluid">
+                <variance-table currentServices="currentServices"></variance-table>
+            </div>
+          </div>
+        </div>
+        <div ng-switch-when="LinesDiagram">
+          <div class="LinesDiagram">
+            <div class="container-fluid">
+                <lines-diagram currentServices="currentServices"></lines-diagram>
+            </div>
+          </div>
         </div>
       </div>
+
     </div>
 
     <!-- Modules -->
@@ -39,6 +53,7 @@
     <!-- Directives -->
     <script src="public/js/directives/sideNav.js"></script>
     <script src="public/js/directives/varianceTable.js"></script>
+    <script src="public/js/directives/linesDiagram.js"></script>
 
   </body>
 </html>

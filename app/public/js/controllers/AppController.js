@@ -50,6 +50,11 @@ app.controller('AppController',  ['$scope', 'currentServices', '$interval', '$ti
       };
     }
 
+      $scope.toShow = "Variance"; //"LinesDiagram";
+
+      $scope.show = function (toShow) {
+        $scope.toShow = toShow;
+      };
 
       function pad(n, width, z) {
         z = z || '0';

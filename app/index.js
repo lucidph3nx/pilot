@@ -704,6 +704,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     }
     return meterage
     };
+
   function distance(position1,position2){
     var lat1=position1.latitude;
     var lat2=position2.latitude;
@@ -844,7 +845,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
 
 app.use('/public', express.static(path.join(__dirname, 'public')))
 
-app.get('/Variance', (request, response) => {
+app.get('/pilot', (request, response) => {
   response.sendFile(path.join(__dirname, 'index.html'))
 })
 
@@ -855,6 +856,6 @@ app.get('/CurrentServices', (request, response) => {
   response.end();
 })
 
-var port = 3001;
+var port = 3000;
 app.listen(port);
 console.log("listening on " + port);
