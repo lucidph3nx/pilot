@@ -1,0 +1,14 @@
+{
+  "name": "pilot",
+  "version": "0.8.0",
+  "description": "Node Project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mongodb": "^2.2.24"
+  }
+}

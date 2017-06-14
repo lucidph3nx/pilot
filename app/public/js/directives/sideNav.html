@@ -1,35 +1,44 @@
-  <section layout="row" flex>
+  <section layout="column" flex>
+    <md-sidenav class="md-sidenav-left" md-component-id="left" md-whiteframe="4">
 
-    <md-sidenav class="md-sidenav-left" md-component-id="left" md-disable-backdrop md-whiteframe="4">
-
-      <md-toolbar class="md-default-theme">
-
-        <h1 class="md-toolbar-tools">Menu</h1>
-        <md-button class="md-icon-button md primary" aria-label="Settings" ng-click="toggleLeft()">
-          <i class="material-icons">menu</i>
-        </md-button>
+      <md-toolbar class="md-theme-indego">
+        <h1 class="md-toolbar-tools">Pilot</h1>
       </md-toolbar>
 
-      <md-content layout-margin>
-        <p>
-          This menu will oneday contain useful things...
-        </p>
-
-      </md-content>
+      <md-list>
+       <md-list-item ng-click="null">
+         <a>
+           <md-item-content md-ink-ripple layout="row" layout-align="start center">
+             <div class="inset">
+               <i class="material-icons">dashboard</i>
+             </div>
+             <div class="inset">Variance
+             </div>
+           </md-item-content>
+         </a>
+       </md-list-item>
+       <md-list-item ng-click="null">
+         <a>
+           <md-item-content md-ink-ripple layout="row" layout-align="start center">
+             <div class="inset">
+               <i class="material-icons">train</i>
+             </div>
+             <div class="inset">Lines
+             </div>
+           </md-item-content>
+         </a>
+       </md-list-item>
+     </md-list>
     </md-sidenav>
 
-    <md-content flex>
-
-      <div layout="column" layout-align="top left">
-
-        <div>
-          <md-button class="md-icon-button md primary" aria-label="Settings" ng-click="toggleLeft()">
+      <md-toolbar class="md-hue-2" style="min-height:40px; height:40px;">
+        <div class="md-toolbar-tools">
+          <md-button class="md-icon-button" aria-label="Settings" ng-click="toggleLeft()">
               <i class="material-icons">menu</i>
           </md-button>
+          <h2>{{ time }}</h2>
         </div>
+        </md-toolbar>
 
-      </div>
-
-    </md-content>
 
   </section>
