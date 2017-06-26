@@ -10,25 +10,48 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
-    <link href="public/css/main.css" rel="stylesheet" />
-    <link href="public/css/lineDiagram.css" rel="stylesheet" />
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/md-data-table/1.8.0/md-data-table-templates.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/md-data-table/1.8.0/md-data-table.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/md-data-table/1.8.0/md-data-table-style.css"></script>-->
+    <script src="https://rawgit.com/daniel-nagy/md-data-table/master/dist/md-data-table.js"></script>
+    <!--google maps api-->
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBR_gFUCm1tgXrLUKeObS_grVyO3G-Tl24"></script>
+    <!-- css stuff-->
+    <link href="public/css/main.css" rel="stylesheet"/>
+    <link href="public/css/lineDiagram.css" rel="stylesheet"/>
+
     <!-- Angular Material Library -->
     <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
   </head>
 
   <body ng-app="pilot">
-    <div ng-controller="AppController">
+    <div ng-controller="AppController" style="height: 96%;">
+
       <div class="sideNav" layout="column" ng-cloak>
         <side-nav></side-nav>
       </div>
+      <!--<h2 class="varianceheading">{{ time }}</h2>-->
 
-      <div ng-switch="toShow">
+      <div ng-switch="toShow" style="height: 100%;">
         <div ng-switch-when="Variance">
           <div class="Variance">
             <div class="container-fluid">
                 <variance-table currentServices="currentServices"></variance-table>
             </div>
           </div>
+        </div>
+        <div ng-switch-when="Variance2">
+          <div class="Variance">
+            <div class="container-fluid">
+                <variance-table2 currentServices="currentServices"></variance-table2>
+            </div>
+          </div>
+        </div>
+        <div ng-switch-when="Map" style="height: 100%;">
+          <div class="Map" style="height: 100%;">
+            <div map="" currentServices="currentServices" style="height: 100%;"></div>
+                <!--<map currentServices="currentServices"></map>-->
+            </div>
         </div>
         <div ng-switch-when="LinesDiagram">
           <div class="LinesDiagram">
@@ -53,7 +76,9 @@
     <!-- Directives -->
     <script src="public/js/directives/sideNav.js"></script>
     <script src="public/js/directives/varianceTable.js"></script>
+    <script src="public/js/directives/varianceTable2.js"></script>
     <script src="public/js/directives/linesDiagram.js"></script>
+    <script src="public/js/directives/map.js"></script>
 
   </body>
 </html>

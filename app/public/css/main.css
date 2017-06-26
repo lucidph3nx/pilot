@@ -1,21 +1,48 @@
+html{
+  height: 100%;
+}
+.Map{
+  /*overflow: hidden;*/
+  height: 100%;
+}
+
+#gmaps {
+  color: black;
+  height: 96%;
+  width: 100%;
+}
+
 .varianceheading {
   color: white;
   text-align: center;
   font-size: 2rem;
 }
 
+#footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    background-color: black;
+}
+
 body {
   font-size: 1.1rem;
-  background-color: #1f2122;
+  background-color: black; /*#1f2122;*/
   color: white;
+  height: 100%;
 }
 
 .sideNav{
   color: white;
 }
 
+.table-inverse{
+  background-color: black; /*#292b2c;*/
+}
+
 .table td, .table th {
-  padding: 0.4rem
+  padding: 0.4rem;
 }
 
 .early {
@@ -42,6 +69,15 @@ body {
 .linkingissue{
   font-weight: bold;
   background-color: #c00000;
+}
+.stoppedbetweenstations{
+  color: yellow;
+  font-weight: bold;/*
+  background-color: #c00000;*/
+}
+.prevdelayed{
+  color: yellow;
+  font-weight: bold;
 }
 .nolink{
   font-weight: bold;

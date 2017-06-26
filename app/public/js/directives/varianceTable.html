@@ -1,4 +1,3 @@
-
 <div id="variancetables" class="container-fluid">
   <div class="row">
         <div class="col-xl-6">
@@ -8,16 +7,17 @@
             <tr id="resultsHeaderRow">
               <th id="trainNumberHeader" class="trainnumber">Train</th>
               <th id="carsHeader">Cars</th>
-              <th id="lineHeader">Line</th>
-              <th id="vehicleIDHeader">Unit-id</th>
+              <!--<th id="lineHeader">Line</th>-->
+              <!--<th id="vehicleIDHeader">Unit-id</th>-->
               <th id="timeHeader">Start</th>
-              <th id="stationHeader">From</th>
-              <th id="VarianceHeader">Var</th>
-              <th id="stationHeader">Last Stn</th>
+              <!--<th id="stationHeader">From</th>-->
+              <th id="VarianceHeader" class="columncenter">Var</th>
+              <th id="VarianceHeader" class="columncenter">VarX</th>
+              <th id="stationHeader" class="columncenter" >Last Stn</th>
               <th id="speedHeader">Spd</th>
               <th id="timeHeader">Age</th>
               <th id="timeHeader">End</th>
-              <th id="stationHeader">To</th>
+              <!--<th id="stationHeader">To</th>-->
               <th id="statuscol">Status</th>
             </tr>
           </thead>
@@ -31,37 +31,48 @@
                                                   'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
                                                   'awaitingdeparture': service.statusMessage == 'Awaiting Departure',
                                                   'linkingissue' : service.statusMessage == 'Check OMS Linking',
-                                                  'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tunnel 1/2',
+                                                  'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
                                                   'nolink' : service.statusMessage == 'No Linked Unit',
+                                                  'stoppedbetweenstations' : service.statusMessage == 'Stopped between stations',
+                                                  'prevdelayed' : service.statusMessage == 'Previous Service Delayed',
                                                   'arriving' : service.statusMessage == 'Arriving',
                                                   }">{{ service.service_id }}</td>
             <td id="carsResults" class="columncenter varianceNormal">{{ service.cars }}</td>
-            <td id="lineResults" class="varianceNormal">{{ service.line }}</td>
+            <!--<td id="lineResults" class="varianceNormal">{{ service.line }}</td>
             <td id="vehicleIDResults" class="varianceNormal" ng-class="{
                                                                     'nolink' : service.statusMessage == 'No Linked Unit',
-                                                                  }">{{ service.linked_unit }}</td>
+                                                                  }">{{ service.linked_unit }}</td>-->
             <td id="timeResults" class="varianceNormal">{{ service.departs }}</td>
-            <td id="stationResults" class="varianceNormal">{{ service.origin }}</td>
+            <!--<td id="stationResults" class="varianceNormal">{{ service.origin }}</td>-->
             <td id="varianceResults" class="columncenter" ng-class="{
                                                                       'early' : service.statusMessage == 'Running Early',
                                                                       'okay' : service.statusMessage == 'Running Ok',
                                                                       'late' : service.statusMessage == 'Running Late',
                                                                       'verylate' : service.statusMessage == 'Running Very Late',
                                                                       'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
-                                                                      }">{{ service.schedule_variance }}</td>
-            <td id="stationResults" ng-class="{
+                                                                    }">{{ service.varianceMinutes }}</td>
+            <td id="varianceResults" class="columncenter" ng-class="{
+                                                                      'early' : service.statusMessage == 'Running Early',
+                                                                      'okay' : service.statusMessage == 'Running Ok',
+                                                                      'late' : service.statusMessage == 'Running Late',
+                                                                      'verylate' : service.statusMessage == 'Running Very Late',
+                                                                      'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
+                                                                      'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
+                                                                    }">{{ service.schedule_variance }}</td>
+            <td id="stationResults" class="columncenter" ng-class="{
                                                 'currentstation' : service.laststationcurrent == true,
                                                 }">{{ service.laststation }}</td>
             <td id="speedResults" class="columnright varianceNormal" ng-class="{
                                                 'linkingissue' : service.statusMessage == 'Check OMS Linking',
+                                                'stoppedbetweenstations' : service.statusMessage == 'Stopped between stations',
                                                 }">{{ service.speed }}</td>
             <td id="timeResults" ng-class="{
                                             'linkingissue' : service.statusMessage == 'Check OMS Linking',
-                                            'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tunnel 1/2',
+                                            'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
                                             'awaitingdeparture' : service.statusMessage == 'Awaiting Departure',
                                             }">{{ service.location_age }}</td>
             <td id="timeResults" class="varianceNormal">{{ service.arrives }}</td>
-            <td id="stationResults" class="varianceNormal">{{ service.destination }}</td>
+            <!--<td id="stationResults" class="varianceNormal">{{ service.destination }}</td>-->
             <td id="statusMessage" ng-class="{
                                                 'early' : service.statusMessage == 'Running Early',
                                                 'okay' : service.statusMessage == 'Running Ok',
@@ -69,10 +80,12 @@
                                                 'verylate' : service.statusMessage == 'Running Very Late',
                                                 'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
                                                 'linkingissue' : service.statusMessage == 'Check OMS Linking',
-                                                'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tunnel 1/2',
+                                                'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
                                                 'awaitingdeparture': service.statusMessage == 'Awaiting Departure',
                                                 'nolink' : service.statusMessage == 'No Linked Unit',
                                                 'arriving' : service.statusMessage == 'Arriving',
+                                                'stoppedbetweenstations' : service.statusMessage == 'Stopped between stations',
+                                                'prevdelayed' : service.statusMessage == 'Previous Service Delayed',
                                               }">{{ service.statusMessage }}</td>
           </tr>
 
@@ -86,16 +99,17 @@
             <tr id="resultsHeaderRow">
               <th id="trainNumberHeader" class="trainnumber">Train</th>
               <th id="carsHeader">Cars</th>
-              <th id="lineHeader">Line</th>
-              <th id="vehicleIDHeader">Unit-id</th>
+              <!--<th id="lineHeader">Line</th>-->
+              <!--<th id="vehicleIDHeader">Unit-id</th>-->
               <th id="timeHeader">Start</th>
-              <th id="stationHeader">From</th>
-              <th id="VarianceHeader">Var</th>
-              <th id="stationHeader">Last Stn</th>
+              <!--<th id="stationHeader">From</th>-->
+              <th id="VarianceHeader" class="columncenter">Var</th>
+              <th id="VarianceHeader" class="columncenter">VarX</th>
+              <th id="stationHeader" class="columncenter">Last Stn</th>
               <th id="speedHeader">Spd</th>
               <th id="timeHeader">Age</th>
               <th id="timeHeader">End</th>
-              <th id="stationHeader">To</th>
+              <!--<th id="stationHeader">To</th>-->
               <th id="statuscol">Status</th>
             </tr>
           </thead>
@@ -109,37 +123,48 @@
                                                     'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
                                                     'awaitingdeparture': service.statusMessage == 'Awaiting Departure',
                                                     'linkingissue' : service.statusMessage == 'Check OMS Linking',
-                                                    'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tunnel 1/2',
+                                                    'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
                                                     'nolink' : service.statusMessage == 'No Linked Unit',
+                                                    'stoppedbetweenstations' : service.statusMessage == 'Stopped between stations',
+                                                    'prevdelayed' : service.statusMessage == 'Previous Service Delayed',
                                                     'arriving' : service.statusMessage == 'Arriving',
                                                     }">{{ service.service_id }}</td>
               <td id="carsResults" class="columncenter varianceNormal">{{ service.cars }}</td>
-              <td id="lineResults" class="varianceNormal">{{ service.line }}</td>
+              <!--<td id="lineResults" class="varianceNormal">{{ service.line }}</td>
               <td id="vehicleIDResults" class="varianceNormal" ng-class="{
                                                                       'nolink' : service.statusMessage == 'No Linked Unit',
-                                                                    }">{{ service.linked_unit }}</td>
+                                                                    }">{{ service.linked_unit }}</td>-->
               <td id="timeResults" class="varianceNormal">{{ service.departs }}</td>
-              <td id="stationResults" class="varianceNormal">{{ service.origin }}</td>
+              <!--<td id="stationResults" class="varianceNormal">{{ service.origin }}</td>-->
               <td id="varianceResults" class="columncenter" ng-class="{
                                                                         'early' : service.statusMessage == 'Running Early',
                                                                         'okay' : service.statusMessage == 'Running Ok',
                                                                         'late' : service.statusMessage == 'Running Late',
                                                                         'verylate' : service.statusMessage == 'Running Very Late',
                                                                         'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
-                                                                        }">{{ service.schedule_variance }}</td>
-              <td id="stationResults" ng-class="{
+                                                                        'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
+                                                                        }">{{ service.varianceMinutes }}</td>
+              <td id="varianceResults" class="columncenter" ng-class="{
+                                                                        'early' : service.statusMessage == 'Running Early',
+                                                                        'okay' : service.statusMessage == 'Running Ok',
+                                                                        'late' : service.statusMessage == 'Running Late',
+                                                                        'verylate' : service.statusMessage == 'Running Very Late',
+                                                                        'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
+                                                                      }">{{ service.schedule_variance }}</td>
+              <td id="stationResults" class="columncenter" ng-class="{
                                                   'currentstation' : service.laststationcurrent == true,
                                                   }">{{ service.laststation }}</td>
               <td id="speedResults" class="columnright varianceNormal" ng-class="{
                                                   'linkingissue' : service.statusMessage == 'Check OMS Linking',
+                                                  'stoppedbetweenstations' : service.statusMessage == 'Stopped between stations',
                                                   }">{{ service.speed }}</td>
               <td id="timeResults" ng-class="{
                                               'linkingissue' : service.statusMessage == 'Check OMS Linking',
-                                              'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tunnel 1/2',
+                                              'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
                                               'awaitingdeparture' : service.statusMessage == 'Awaiting Departure',
                                               }">{{ service.location_age }}</td>
               <td id="timeResults" class="varianceNormal">{{ service.arrives }}</td>
-              <td id="stationResults" class="varianceNormal">{{ service.destination }}</td>
+              <!--<td id="stationResults" class="varianceNormal">{{ service.destination }}</td>-->
               <td id="statusMessage" ng-class="{
                                                   'early' : service.statusMessage == 'Running Early',
                                                   'okay' : service.statusMessage == 'Running Ok',
@@ -147,10 +172,12 @@
                                                   'verylate' : service.statusMessage == 'Running Very Late',
                                                   'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
                                                   'linkingissue' : service.statusMessage == 'Check OMS Linking',
-                                                  'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tunnel 1/2',
+                                                  'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
                                                   'awaitingdeparture': service.statusMessage == 'Awaiting Departure',
                                                   'nolink' : service.statusMessage == 'No Linked Unit',
                                                   'arriving' : service.statusMessage == 'Arriving',
+                                                  'stoppedbetweenstations' : service.statusMessage == 'Stopped between stations',
+                                                  'prevdelayed' : service.statusMessage == 'Previous Service Delayed',
                                                 }">{{ service.statusMessage }}</td>
             </tr>
 
@@ -159,3 +186,5 @@
     </div>
   </div>
 </div>
+
+<div id="footer">All 'Delay Risk' warnings are based upon the master roster and will not change with crew changes on the day. Use warnings as a guide only.</div>

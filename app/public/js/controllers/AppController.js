@@ -17,7 +17,7 @@ app.controller('AppController',  ['$scope', 'currentServices', '$interval', '$ti
             $scope.currentServices = d.data.CurrentServices;
             extraseconds = 0
           });
-      }, 30000);
+      }, 15000);
       //tick clock
       $interval(function () {
           extraseconds = extraseconds + 1
@@ -61,5 +61,6 @@ app.controller('AppController',  ['$scope', 'currentServices', '$interval', '$ti
         n = n + '';
         return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
       }
+
 
 }]);
