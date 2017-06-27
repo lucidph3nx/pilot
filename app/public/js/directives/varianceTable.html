@@ -34,6 +34,7 @@
                                                   'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
                                                   'nolink' : service.statusMessage == 'No Linked Unit',
                                                   'stoppedbetweenstations' : service.statusMessage == 'Stopped between stations',
+                                                  'storageroad' : service.statusMessage == 'In Storage Road',
                                                   'prevdelayed' : service.statusMessage == 'Previous Service Delayed',
                                                   'arriving' : service.statusMessage == 'Arriving',
                                                   }">{{ service.service_id }}</td>
@@ -50,6 +51,7 @@
                                                                       'late' : service.statusMessage == 'Running Late',
                                                                       'verylate' : service.statusMessage == 'Running Very Late',
                                                                       'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
+                                                                      'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
                                                                     }">{{ service.varianceMinutes }}</td>
             <td id="varianceResults" class="columncenter" ng-class="{
                                                                       'early' : service.statusMessage == 'Running Early',
@@ -85,6 +87,7 @@
                                                 'nolink' : service.statusMessage == 'No Linked Unit',
                                                 'arriving' : service.statusMessage == 'Arriving',
                                                 'stoppedbetweenstations' : service.statusMessage == 'Stopped between stations',
+                                                'storageroad' : service.statusMessage == 'In Storage Road',
                                                 'prevdelayed' : service.statusMessage == 'Previous Service Delayed',
                                               }">{{ service.statusMessage }}</td>
           </tr>
@@ -125,6 +128,7 @@
                                                     'linkingissue' : service.statusMessage == 'Check OMS Linking',
                                                     'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
                                                     'nolink' : service.statusMessage == 'No Linked Unit',
+                                                    'storageroad' : service.statusMessage == 'In Storage Road',
                                                     'stoppedbetweenstations' : service.statusMessage == 'Stopped between stations',
                                                     'prevdelayed' : service.statusMessage == 'Previous Service Delayed',
                                                     'arriving' : service.statusMessage == 'Arriving',
@@ -142,8 +146,7 @@
                                                                         'late' : service.statusMessage == 'Running Late',
                                                                         'verylate' : service.statusMessage == 'Running Very Late',
                                                                         'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
-                                                                        'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
-                                                                        }">{{ service.varianceMinutes }}</td>
+                                                                      }">{{ service.varianceMinutes }}</td>
               <td id="varianceResults" class="columncenter" ng-class="{
                                                                         'early' : service.statusMessage == 'Running Early',
                                                                         'okay' : service.statusMessage == 'Running Ok',
@@ -176,6 +179,7 @@
                                                   'awaitingdeparture': service.statusMessage == 'Awaiting Departure',
                                                   'nolink' : service.statusMessage == 'No Linked Unit',
                                                   'arriving' : service.statusMessage == 'Arriving',
+                                                  'storageroad' : service.statusMessage == 'In Storage Road',
                                                   'stoppedbetweenstations' : service.statusMessage == 'Stopped between stations',
                                                   'prevdelayed' : service.statusMessage == 'Previous Service Delayed',
                                                 }">{{ service.statusMessage }}</td>

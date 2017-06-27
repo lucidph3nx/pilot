@@ -14,7 +14,7 @@ module.exports = [
 {"station_id":"NGAU","station_name":"Ngauranga","KRLine":"MEL","meterage":4800},
 {"station_id":"PETO","station_name":"Petone","KRLine":"MEL","meterage":10500},
 {"station_id":"WEST","station_name":"Western Hutt","KRLine":"MEL","meterage":12390},
-{"station_id":"MELL","station_name":"Melling","KRLine":"MEL","meterage":14118},
+{"station_id":"MELL","station_name":"Melling","KRLine":"MEL","meterage":14117.1609058775},
 {"station_id":"WELL","station_name":"Wellington","KRLine":"NIMT","meterage":0},
 {"station_id":"KAIW","station_name":"Kaiwharawhara","KRLine":"NIMT","meterage":2500},
 {"station_id":"T1","station_name":"Tunnel 1","KRLine":"NIMT","meterage":4500},

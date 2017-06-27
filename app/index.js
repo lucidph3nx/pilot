@@ -273,6 +273,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     this.schedule_variance = this.varianceMinutes
     this.schedule_variance_min = this.varianceMinutes
   }else{
+    //console.log(this.service_id);
     this.schedule_variance = getScheduleVariance(this.kiwirail, this.currenttime,this.service_date,this.meterage,this.prevstntime,this.nextstntime,this.prevstnmeterage,this.nextstnmeterage,this.location_age_seconds)[1];
     this.schedule_variance_min = getScheduleVariance(this.kiwirail, this.currenttime,this.service_date,this.meterage,this.prevstntime,this.nextstntime,this.prevstnmeterage,this.nextstnmeterage,this.location_age_seconds)[0];
   };
@@ -290,7 +291,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
   this.TMNextServiceTime = getdepartsfromtimetable(this.TMNextService,this.calendar_id);
   this.TMNextTurnaround = getTurnaroundFrom2Times(this.arrives,this.TMNextServiceTime);
   //status message
-  this.statusMessage = getStatusMessage(this.kiwirail,this.linked_unit,this.location_age,this.varianceMinutes,this.NextTurnaround,this.LENextTurnaround,this.TMNextTurnaround,this.laststation,this.laststationcurrent,this.direction,this.line,this.departed,this.destination,this.speed,this.schedule_variance_min);
+  this.statusMessage = getStatusMessage(this.kiwirail,this.linked_unit,this.location_age,this.varianceMinutes,this.NextTurnaround,this.LENextTurnaround,this.TMNextTurnaround,this.laststation,this.laststationcurrent,this.direction,this.line,this.departed,this.destination,this.speed,this.schedule_variance_min,this.origin);
 
   //timetable lookup functions
   function getcarsfromtimetable(service_id,calendar_id){
@@ -886,6 +887,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     //console.log( (meterage - prevstnmeterage) / (nextstnmeterage - prevstnmeterage) );
     var CurrentDelay = ((Math.round(((currenttime -43200000) - Math.floor(ExpectedTime))/1000))/60) - (location_age_seconds /60);
     //console.log(CurrentDelay/60000);
+    //console.log(ExpectedTime +" "+currenttime +" = "+ CurrentDelay);
     return [CurrentDelay,minTommss(CurrentDelay)]
   }else{
     return ["",""]
@@ -906,7 +908,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     return today
   };
 
-  function getStatusMessage(kiwirail_boolean,linked_unit,location_age,variance_minutes,train_turnaround,le_turnaround,tm_turnaround,last_station,last_station_current,direction,line,departed,destination,speed,schedule_variance_min){
+  function getStatusMessage(kiwirail_boolean,linked_unit,location_age,variance_minutes,train_turnaround,le_turnaround,tm_turnaround,last_station,last_station_current,direction,line,departed,destination,speed,schedule_variance_min,origin){
     //(this.kiwirail,this.linked_unit,this.location_age,this.varianceMinutes,this.NextTurnaround,this.LENextTurnaround,this.TMNextTurnaround,this.laststation,this.laststationcurrent,this.direction)
       var location_age_seconds = parseInt(location_age.split(":")[0]*60) + parseInt(location_age.split(":")[1])
       var StatusMessage;
@@ -933,7 +935,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
       //the early/late status generation
       if (schedule_variance_min < -1.5){
           StatusMessage = "Running Early";
-      }else if (schedule_variance_min <=4){
+      }else if (schedule_variance_min <5){
           StatusMessage = "Running Ok"
       }else if (schedule_variance_min <15){
         StatusMessage = "Running Late"
@@ -987,7 +989,13 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
         return StatusMessage
       };
       if(speed == 0 && last_station_current == false){
-        StatusMessage = "Stopped between stations"
+        if(last_station == "POMA" && origin == "TAIT"){
+          StatusMessage = "In Storage Road"
+        }else if(last_station == "TEHO" && origin == "WAIK"){
+          StatusMessage = "In Turn Back Road"
+        }else{
+          StatusMessage = "Stopped between stations"
+      };
         return StatusMessage
       }
 

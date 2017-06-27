@@ -70,6 +70,11 @@ body {
   font-weight: bold;
   background-color: #c00000;
 }
+
+.storageroad{
+  color: yellow;
+  font-weight: bold;
+}
 .stoppedbetweenstations{
   color: yellow;
   font-weight: bold;/*
