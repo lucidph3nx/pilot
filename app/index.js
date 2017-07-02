@@ -92,6 +92,12 @@ function getnewgevisjson(){
         GeVisJSON = JSON.parse(body)
       };
 
+      if(body == {"metadata":{"outputSpatialReference":0},"features":[]}){
+        console.log("GeVis Vehicles responded empty @" + Date(CurrentUTC).toJSON().substring(10,19).replace('T',' ').trim())
+      }else{
+        console.log("GeVis loaded ok")
+      };
+
   		readresponse(GeVisJSON)
   	});
   }).on('error', function(e) {
@@ -191,6 +197,8 @@ function readresponse(GeVisJSON){
           checkdeparts = stopTimes[st].departs
           checkarrives = ""
         };
+        //checking if next entry on stopTimes exists and is zero, indicating end of service
+        if(st+1 < stopTimes.length){
         if(stopTimes[st+1].station_sequence == 0){
           checkarrives = stopTimes[st].arrives
           //then check if already in active services
@@ -212,7 +220,7 @@ function readresponse(GeVisJSON){
                 CurrentServices.push(service)
               };
           };
-        };
+        }};
       }
     };
   }};
@@ -846,7 +854,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     }
   }}
   if(prevtime == undefined){
-    console.log(prevstation + " " + service_id)
+    //console.log(prevstation + " " + service_id)
   }
     return [prevtime,prevmeterage,prevstation]
   };
