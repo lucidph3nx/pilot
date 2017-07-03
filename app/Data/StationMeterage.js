@@ -66,6 +66,7 @@ module.exports = [
 {"station_id":"WALL","station_name":"Wallaceville","KRLine":"WRL","meterage":31300},
 {"station_id":"UPPE","station_name":"Upper Hutt","KRLine":"WRL","meterage":32400},
 {"station_id":"MAYM","station_name":"Maymorn","KRLine":"WRL","meterage":38800},
+{"station_id":"T2","station_name":"Rimutaka Tunnel","KRLine":"WRL","meterage":43500},
 {"station_id":"FEAT","station_name":"Featherston","KRLine":"WRL","meterage":57200},
 {"station_id":"WOOD","station_name":"Woodside","KRLine":"WRL","meterage":65120},
 {"station_id":"MATA","station_name":"Matarawa","KRLine":"WRL","meterage":69600},

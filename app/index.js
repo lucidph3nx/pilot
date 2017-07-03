@@ -12,6 +12,8 @@ const calendarexceptions = require('./Data/calendarexceptions')
 const stopTimes = require('./Data/stopTimes')
 const tripSheet = require('./Data/tripSheet')
 const unitRoster = require('./Data/unitRoster')
+const passengerPercentage = require('./Data/passengerPercentage')
+const passengerAverage = require('./Data/passengerAverage')
 
 //for recording
 const MongoClient = require('mongodb').MongoClient;
@@ -272,6 +274,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
   this.laststation = getlaststation(this.lat,this.long,this.meterage,this.KRline,this.direction)[0]
   this.laststationcurrent = getlaststation(this.lat,this.long,this.meterage,this.KRline,this.direction)[1]
   //variables needed to calculate own delay
+  this.prevTimedStation = getPrevStnDetails(this.meterage,this.direction,this.service_id)[2]
   this.prevstntime = getPrevStnDetails(this.meterage,this.direction,this.service_id)[0]
   this.nextstntime = getNextStnDetails(this.meterage,this.direction,this.service_id)[0]
   this.prevstnmeterage = getPrevStnDetails(this.meterage,this.direction,this.service_id)[1]
@@ -284,7 +287,13 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     //console.log(this.service_id);
     this.schedule_variance = getScheduleVariance(this.kiwirail, this.currenttime,this.service_date,this.meterage,this.prevstntime,this.nextstntime,this.prevstnmeterage,this.nextstnmeterage,this.location_age_seconds)[1];
     this.schedule_variance_min = getScheduleVariance(this.kiwirail, this.currenttime,this.service_date,this.meterage,this.prevstntime,this.nextstntime,this.prevstnmeterage,this.nextstnmeterage,this.location_age_seconds)[0];
-  };
+    if(this.schedule_variance_min == ""){
+      this.varianceFriendly = this.varianceMinutes
+    }else{
+      this.varianceFriendly = (this.schedule_variance_min).toFixed(0)
+      if(this.varianceFriendly == -0){this.varianceFriendly = 0};
+    }
+    };
   //prev service
   this.LastService = getUnitLastService(this.service_id,this.calendar_id);
   //next service details
@@ -298,6 +307,8 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
   this.TMNextService = getStaffNextService(this.service_id,this.calendar_id,"TM");
   this.TMNextServiceTime = getdepartsfromtimetable(this.TMNextService,this.calendar_id);
   this.TMNextTurnaround = getTurnaroundFrom2Times(this.arrives,this.TMNextServiceTime);
+  //pax count estimation
+  this.passengerEstimation = getPaxAtStation(this.calendar_id, this.service_id, this.line, this.prevTimedStation, this.direction);
   //status message
   this.statusMessage = getStatusMessage(this.kiwirail,this.linked_unit,this.location_age,this.varianceMinutes,this.NextTurnaround,this.LENextTurnaround,this.TMNextTurnaround,this.laststation,this.laststationcurrent,this.direction,this.line,this.departed,this.destination,this.speed,this.schedule_variance_min,this.origin);
 
@@ -1012,6 +1023,82 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     }
     return StatusMessage;
   }
+};
+
+//passenger count calculations
+function getPaxAtStation(calendar_id, service_id, line, station, direction){
+
+  //array to hold list of stations and their sequence number
+  var stoppingArray = [];
+  var totalCount = getCountAndPeakType(calendar_id,service_id)[0];
+  var peakType = getCountAndPeakType(calendar_id,service_id)[1];
+  var addToOne = 0;
+
+  //loop through stopTimes and get all relevant stopTimes
+  for (st=0; st<stopTimes.length; st++){
+    if(service_id == stopTimes[st].service_id){
+      var percent
+      for (spc=0; spc < passengerPercentage.length; spc++){
+        if(calendar_id == passengerPercentage[spc].calendar_id && line == passengerPercentage[spc].line && peakType == passengerPercentage[spc].peak_type && stopTimes[st].station == passengerPercentage[spc].station_id){
+          percent = passengerPercentage[spc].percentage
+          addToOne = addToOne + percent
+        };
+      }
+      stoppingArray.push({"station":stopTimes[st].station,"sequence":stopTimes[st].station_sequence,"percent":percent,"passengerCount":0})
+    }
+  };
+
+  for (sta=0; sta<stoppingArray.length;sta++){
+    if (stoppingArray[sta].station == "WELL"){
+      stoppingArray[sta].passengerCount = 0
+    }else{
+      stoppingArray[sta].percent = (stoppingArray[sta].percent / addToOne)
+      stoppingArray[sta].passengerCount = totalCount * stoppingArray[sta].percent
+    }
+  };
+
+  if (direction == "UP"){
+    stationCount = totalCount
+    for (sta=0; sta<stoppingArray.length;sta++){
+      stationCount = stationCount - stoppingArray[sta].passengerCount;
+      if (stoppingArray[sta].station == station){break;};
+    };
+  }else if (direction == "DOWN"){
+    stationCount = 0
+    for (sta=0; sta<stoppingArray.length;sta++){
+      stationCount = stationCount + stoppingArray[sta].passengerCount;
+      if (stoppingArray[sta].station == station){break;};
+    };
+  };
+
+  //test function
+  //console.log(service_id);
+  //console.log("station count = " + stationCount)
+  //console.log(stoppingArray);
+
+  stationCount = Number(Math.round(stationCount+'e1')+'e-1');
+
+  if(stationCount == null || stationCount == undefined){
+    stationCount = "";
+  };
+
+return stationCount
+
+  function getCountAndPeakType(calendar_id,service_id){
+    var peakType
+    var count
+    for(s=0;s<passengerAverage.length;s++){
+      if (passengerAverage[s].service_id == service_id){
+        peakType = passengerAverage[s].peak_type;
+        count = passengerAverage[s][calendar_id + "count"];
+      };
+    };
+    if (count == undefined || peakType == undefined){
+      return ["",""];
+    }else{
+      return [count,peakType]
+    };
+  };
 };
 
 

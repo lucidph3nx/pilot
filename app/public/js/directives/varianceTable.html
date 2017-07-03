@@ -12,13 +12,13 @@
               <th id="timeHeader">Start</th>
               <!--<th id="stationHeader">From</th>-->
               <th id="VarianceHeader" class="columncenter">Var</th>
-              <th id="VarianceHeader" class="columncenter">VarX</th>
               <th id="stationHeader" class="columncenter" >Last Stn</th>
               <th id="speedHeader">Spd</th>
               <th id="timeHeader">Age</th>
               <th id="timeHeader">End</th>
               <!--<th id="stationHeader">To</th>-->
               <th id="statuscol">Status</th>
+              <th>Est Pax</th>
             </tr>
           </thead>
           <tbody>
@@ -52,15 +52,7 @@
                                                                       'verylate' : service.statusMessage == 'Running Very Late',
                                                                       'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
                                                                       'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
-                                                                    }">{{ service.varianceMinutes }}</td>
-            <td id="varianceResults" class="columncenter" ng-class="{
-                                                                      'early' : service.statusMessage == 'Running Early',
-                                                                      'okay' : service.statusMessage == 'Running Ok',
-                                                                      'late' : service.statusMessage == 'Running Late',
-                                                                      'verylate' : service.statusMessage == 'Running Very Late',
-                                                                      'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
-                                                                      'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
-                                                                    }">{{ service.schedule_variance }}</td>
+                                                                    }">{{ service.varianceFriendly }}</td>
             <td id="stationResults" class="columncenter" ng-class="{
                                                 'currentstation' : service.laststationcurrent == true,
                                                 }">{{ service.laststation }}</td>
@@ -91,6 +83,7 @@
                                                 'storageroad' : service.statusMessage == 'In Storage Road' || service.statusMessage == 'In Turn Back Road',
                                                 'prevdelayed' : service.statusMessage == 'Previous Service Delayed',
                                               }">{{ service.statusMessage }}</td>
+            <td>{{ service.passengerEstimation }}</td>
           </tr>
 
         </tbody>
@@ -108,13 +101,13 @@
               <th id="timeHeader">Start</th>
               <!--<th id="stationHeader">From</th>-->
               <th id="VarianceHeader" class="columncenter">Var</th>
-              <th id="VarianceHeader" class="columncenter">VarX</th>
               <th id="stationHeader" class="columncenter">Last Stn</th>
               <th id="speedHeader">Spd</th>
               <th id="timeHeader">Age</th>
               <th id="timeHeader">End</th>
               <!--<th id="stationHeader">To</th>-->
               <th id="statuscol">Status</th>
+              <th>Est Pax</th>
             </tr>
           </thead>
           <tbody>
@@ -147,14 +140,7 @@
                                                                         'late' : service.statusMessage == 'Running Late',
                                                                         'verylate' : service.statusMessage == 'Running Very Late',
                                                                         'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
-                                                                      }">{{ service.varianceMinutes }}</td>
-              <td id="varianceResults" class="columncenter" ng-class="{
-                                                                        'early' : service.statusMessage == 'Running Early',
-                                                                        'okay' : service.statusMessage == 'Running Ok',
-                                                                        'late' : service.statusMessage == 'Running Late',
-                                                                        'verylate' : service.statusMessage == 'Running Very Late',
-                                                                        'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
-                                                                      }">{{ service.schedule_variance }}</td>
+                                                                      }">{{ service.varianceFriendly }}</td>
               <td id="stationResults" class="columncenter" ng-class="{
                                                   'currentstation' : service.laststationcurrent == true,
                                                   }">{{ service.laststation }}</td>
@@ -185,6 +171,7 @@
                                                   'storageroad' : service.statusMessage == 'In Storage Road' || service.statusMessage == 'In Turn Back Road',
                                                   'prevdelayed' : service.statusMessage == 'Previous Service Delayed',
                                                 }">{{ service.statusMessage }}</td>
+              <td>{{ service.passengerEstimation }}</td>
             </tr>
 
         </tbody>
