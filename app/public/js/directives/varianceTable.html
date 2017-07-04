@@ -45,25 +45,24 @@
             <td id="timeResults" class="varianceNormal">{{ service.departs }}</td>
             <!--<td id="stationResults" class="varianceNormal">{{ service.origin }}</td>-->
             <td id="varianceResults" class="columncenter" ng-class="{
-                                                                      'early' : service.statusMessage == 'Running Early',
-                                                                      'okay' : service.statusMessage == 'Running Ok',
-                                                                      'late' : service.statusMessage == 'Running Late',
-                                                                      'verylate' : service.statusMessage == 'Running Very Late',
-                                                                      'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
-                                                                      'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
+                                                                      'early' : service.statusArray[0] == 'Running Early',
+                                                                      'okay' : service.statusArray[0] == 'Running Ok',
+                                                                      'late' : service.statusArray[0] == 'Running Late',
+                                                                      'verylate' : service.statusArray[0] == 'Running Very Late',
+                                                                      'delayrisk' : (service.statusArray[0]).substring(0, 10) == 'Delay Risk',
                                                                     }">{{ service.varianceFriendly }}</td>
             <td id="stationResults" class="columncenter" ng-class="{
                                                 'currentstation' : service.laststationcurrent == true,
                                                 }">{{ service.laststation }}</td>
             <td id="speedResults" class="columnright varianceNormal" ng-class="{
-                                                'linkingissue' : service.statusMessage == 'Check OMS Linking',
-                                                'stoppedbetweenstations' : service.statusMessage == 'Stopped between stations',
-                                                'storageroad' : service.statusMessage == 'In Storage Road' || service.statusMessage == 'In Turn Back Road',
+                                                'linkingissue' : service.statusArray[1] == 'Check OMS Linking',
+                                                'stoppedbetweenstations' : service.statusArray[2] == 'Stopped between stations',
+                                                'storageroad' : service.statusArray[2] == 'In Storage Road' || service.statusArray[2] == 'In Turn Back Road',
                                                 }">{{ service.speed }}</td>
             <td id="timeResults" ng-class="{
-                                            'linkingissue' : service.statusMessage == 'Check OMS Linking',
-                                            'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
-                                            'awaitingdeparture' : service.statusMessage == 'Awaiting Departure',
+                                            'linkingissue' : service.statusArray[1] == 'Check OMS Linking',
+                                            'intunnel' : service.statusArray[1] == 'In Rimutaka Tunnel' || service.statusArray[1] == 'In Tawa Tunnel' || service.statusArray[1] == 'In Tunnel 1' || service.statusArray[1] == 'In Tunnel 2',
+                                            'awaitingdeparture' : service.statusArray[1] == 'Awaiting Departure',
                                             }">{{ service.location_age }}</td>
             <td id="timeResults" class="varianceNormal">{{ service.arrives }}</td>
             <!--<td id="stationResults" class="varianceNormal">{{ service.destination }}</td>-->

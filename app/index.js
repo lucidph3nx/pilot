@@ -136,6 +136,16 @@ function readresponse(GeVisJSON){
         var schedule_variance = GeVisJSON.features[i].attributes.DelayTime
         var lat = GeVisJSON.features[i].attributes.Latitude
         var long = GeVisJSON.features[i].attributes.Longitude
+
+        //var otherunit
+        //var otherunitlat
+        //var otherunitlong
+
+        //if(GeVisJSON.features[i].attributes.EquipmentDesc == "Matangi Power Car                       "){
+        //  linked_unit
+        //}
+
+
         //new service object
         var service = new Service(service_id,service_date,service_description,linked_unit,speed,compass,location_age,schedule_variance,lat,long);
         //for debug
@@ -284,6 +294,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
   if(dummydata){
     this.schedule_variance = this.varianceMinutes
     this.schedule_variance_min = this.varianceMinutes
+    this.varianceFriendly = this.varianceMinutes
   }else{
     //console.log(this.service_id);
     this.schedule_variance = getScheduleVariance(this.kiwirail, this.currenttime,this.service_date,this.meterage,this.prevstntime,this.nextstntime,this.prevstnmeterage,this.nextstnmeterage,this.location_age_seconds)[1];
@@ -311,7 +322,134 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
   //pax count estimation
   this.passengerEstimation = getPaxAtStation(this.calendar_id, this.service_id, this.line, this.prevTimedStation, this.direction);
   //status message
-  this.statusMessage = getStatusMessage(this.kiwirail,this.linked_unit,this.location_age,this.varianceMinutes,this.NextTurnaround,this.LENextTurnaround,this.TMNextTurnaround,this.laststation,this.laststationcurrent,this.direction,this.line,this.departed,this.destination,this.speed,this.schedule_variance_min,this.origin);
+  //this.statusMessage = getStatusMessage(this.kiwirail,this.linked_unit,this.location_age,this.varianceMinutes,this.NextTurnaround,this.LENextTurnaround,this.TMNextTurnaround,this.laststation,this.laststationcurrent,this.direction,this.line,this.departed,this.destination,this.speed,this.schedule_variance_min,this.origin);
+
+  //generate Status Messages
+      var location_age_seconds = parseInt(location_age.split(":")[0]*60) + parseInt(location_age.split(":")[1])
+      var lowestTurnaround;
+      var TurnaroundLabel;
+      var stopProcessing = false;
+
+      var StatusMessage = "";
+      var TempStatus;
+      var StatusArray = ["","",""]; //this will be in the format of [0] = delays, [1] = tracking, [2] = stopped
+
+      //filter out the non metlinks
+      if(this.kiwirail_boolean){
+        TempStatus = "Non-Metlink Service";
+        if(StatusMessage == "" && stopProcessing == false){StatusMessage = TempStatus};
+        stopProcessing = true;
+      };
+      //filter out things found from timetable
+      if(this.linked_unit == ""){
+        TempStatus = "No Linked Unit";
+        if(StatusMessage == "" && stopProcessing == false){StatusMessage = TempStatus};
+        stopProcessing = true;
+      };
+      //filter already arrived trains
+      if(this.last_station == this.destination){
+        TempStatus = "Arriving";
+        if(StatusMessage == "" && stopProcessing == false){StatusMessage = TempStatus};
+        stopProcessing = true;
+      }
+      //the early/late status generation
+      if (this.schedule_variance_min < -1.5){
+          TempStatus = "Running Early";
+          StatusArray[0] = TempStatus;
+      }else if (this.schedule_variance_min <5){
+          TempStatus = "Running Ok";
+          StatusArray[0] = TempStatus;
+      }else if (this.schedule_variance_min <15){
+          TempStatus = "Running Late";
+          StatusArray[0] = TempStatus;
+      }else if (this.schedule_variance_min >=15){
+          TempStatus = "Running Very Late";
+          StatusArray[0] = TempStatus;
+      };
+      if(StatusMessage == "" && stopProcessing == false){StatusMessage = TempStatus};
+      //compare turnarounds to lateness to look for issues
+      if(((this.NextTurnaround != "") && (this.NextTurnaround < this.schedule_variance_min)) || ((this.LENextTurnaround != "") && (this.le_turnaround < this.schedule_variance_min)) || ((this.TMNextTurnaround != "") && (this.TMNextTurnaround < this.schedule_variance_min))){
+        TempStatus = "Delay Risk:";
+
+        if((this.NextTurnaround < this.schedule_variance_min)){
+          TempStatus = TempStatus + " Train";
+        };
+        if((this.LENextTurnaround < this.schedule_variance_min)){
+          TempStatus = TempStatus + " LE";
+        };
+        if((this.TMNextTurnaround < this.schedule_variance_min)){
+          TempStatus = TempStatus + " TM";
+        };
+        //check for negative turnarounds and just give an error status
+        if((this.NextTurnaround <0) || (this.LENextTurnaround < 0) || (this.TMNextTurnaround < 0)){
+          TempStatus = "Midnight Error";
+        };
+        if(stopProcessing == false){StatusMessage = TempStatus};
+        stopProcessing = true;
+      };
+      //look at linking issues
+      if(this.location_age_seconds >=180){
+          TempStatus = "";
+        // identify tunnel tracking issues and provide alternative status message
+        if(this.direction == "UP" && this.laststation == "MAYM" && (this.location_age_seconds < 900)){
+          TempStatus = "In Rimutaka Tunnel";
+          StatusArray[1] = TempStatus;
+        }else if (this.direction == "UP" && this.laststation == "UPPE" && (this.location_age_seconds < 900)) {
+          TempStatus = "In Rimutaka Tunnel";
+          StatusArray[1] = TempStatus;
+        }else if (this.direction == "DOWN" && this.laststation == "FEAT" && (this.location_age_seconds < 900)) {
+          TempStatus = "In Rimutaka Tunnel";
+          StatusArray[1] = TempStatus;
+        }else if (this.direction == "DOWN" && this.laststation == "TAKA" && (this.location_age_seconds < 600) && this.line == "KPL") {
+          TempStatus = "In Tawa Tunnel";
+          StatusArray[1] = TempStatus;
+        }else if (this.direction == "UP" && this.laststation == "KAIW" && (this.location_age_seconds < 600)  && this.line == "KPL") {
+          TempStatus = "In Tawa Tunnel";
+          StatusArray[1] = TempStatus;
+        }else if (this.direction == "DOWN" && this.laststation == "T2" && (this.location_age_seconds < 600) && this.line == "KPL") {
+          TempStatus = "In Tunnel 1";
+          StatusArray[1] = TempStatus;
+        }else if (this.direction == "UP" && this.laststation == "T1" && (this.location_age_seconds < 600)  && this.line == "KPL") {
+          TempStatus = "In Tunnel 2";
+          StatusArray[1] = TempStatus;
+        }else if (this.departed == false && TempStatus == ""){
+          TempStatus = "Awaiting Departure";
+          StatusArray[0] = TempStatus;
+          StatusArray[1] = TempStatus;
+        }else{
+          TempStatus = "Check OMS Linking";
+          StatusArray[1] = TempStatus;
+        };
+        if(stopProcessing == false){StatusMessage = TempStatus};
+      };
+      if (this.departed == false){
+        TempStatus = "Awaiting Departure";
+        StatusArray[0] = TempStatus;
+        StatusArray[1] = TempStatus;
+        StatusMessage = TempStatus;
+        stopProcessing = true;
+      };
+      if(this.speed == 0 && this.laststationcurrent == false){
+        if(this.laststation == "POMA" && this.origin == "TAIT"){
+          TempStatus = "In Storage Road";
+          StatusArray[2] = TempStatus;
+        }else if(this.laststation == "TEHO" && this.origin == "WAIK"){
+          TempStatus = "In Turn Back Road";
+          StatusArray[2] = TempStatus;
+        }else{
+          TempStatus = "Stopped between stations";
+          StatusArray[2] = TempStatus;
+      };
+      if(StatusMessage == "" && stopProcessing == false){StatusMessage = TempStatus};
+      stopProcessing = true;
+    };
+      if (StatusMessage == 0 || StatusMessage == false || typeof StatusMessage == "undefined"){
+        StatusMessage = "";
+      };
+
+    this.statusMessage = StatusMessage;
+    this.statusArray = StatusArray;
+
 
   //timetable lookup functions
   function getcarsfromtimetable(service_id,calendar_id){
@@ -928,104 +1066,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     return today
   };
 
-  function getStatusMessage(kiwirail_boolean,linked_unit,location_age,variance_minutes,train_turnaround,le_turnaround,tm_turnaround,last_station,last_station_current,direction,line,departed,destination,speed,schedule_variance_min,origin){
-    //(this.kiwirail,this.linked_unit,this.location_age,this.varianceMinutes,this.NextTurnaround,this.LENextTurnaround,this.TMNextTurnaround,this.laststation,this.laststationcurrent,this.direction)
-      var location_age_seconds = parseInt(location_age.split(":")[0]*60) + parseInt(location_age.split(":")[1])
-      var StatusMessage;
-      var lowestTurnaround;
-      var TurnaroundLabel;
-
-      //filter out the non metlinks
-      if(kiwirail_boolean){
-        StatusMessage = "Non-Metlink Service"
-        return StatusMessage
-      };
-      //filter out things found from timetable
-      if(linked_unit == ""){
-
-        StatusMessage = "No Linked Unit"
-        return StatusMessage
-      }
-
-      //filter already arrived trains
-      if(last_station == destination){
-        StatusMessage = "Arriving"
-        return StatusMessage
-      }
-      //the early/late status generation
-      if (schedule_variance_min < -1.5){
-          StatusMessage = "Running Early";
-      }else if (schedule_variance_min <5){
-          StatusMessage = "Running Ok"
-      }else if (schedule_variance_min <15){
-        StatusMessage = "Running Late"
-      }else if (schedule_variance_min >=15){
-        StatusMessage = "Running Very Late"
-      };
-      //compare turnarounds to lateness to look for issues
-      if(((train_turnaround != "") && (train_turnaround < schedule_variance_min)) || ((le_turnaround != "") && (le_turnaround < schedule_variance_min)) || ((tm_turnaround != "") && (tm_turnaround < schedule_variance_min))){
-        StatusMessage = "Delay Risk:";
-
-        if((train_turnaround < schedule_variance_min)){
-          StatusMessage = StatusMessage + " Train";
-        };
-        if((le_turnaround < schedule_variance_min)){
-          StatusMessage = StatusMessage + " LE";
-        };
-        if((tm_turnaround < schedule_variance_min)){
-          StatusMessage = StatusMessage + " TM";
-        };
-        //check for negative turnarounds and just give an error status
-        if((train_turnaround <0) || (le_turnaround < 0) || (tm_turnaround < 0)){
-          StatusMessage = "Midnight Error";
-        }
-        return StatusMessage
-      };
-      //look at linking issues
-      if(location_age_seconds >=180){
-        // identify tunnel tracking issues and provide alternative status message
-        if(direction == "UP" && last_station == "MAYM" && (location_age_seconds < 900)){
-          StatusMessage = "In Rimutaka Tunnel"
-        }else if (direction == "UP" && last_station == "UPPE" && (location_age_seconds < 900)) {
-          StatusMessage = "In Rimutaka Tunnel"
-        }else if (direction == "DOWN" && last_station == "FEAT" && (location_age_seconds < 900)) {
-          StatusMessage = "In Rimutaka Tunnel"
-        }else if (direction == "DOWN" && last_station == "TAKA" && (location_age_seconds < 600) && line == "KPL") {
-          StatusMessage = "In Tawa Tunnel"
-        }else if (direction == "UP" && last_station == "KAIW" && (location_age_seconds < 600)  && line == "KPL") {
-          StatusMessage = "In Tawa Tunnel"
-        }else if (direction == "DOWN" && last_station == "T2" && (location_age_seconds < 600) && line == "KPL") {
-          StatusMessage = "In Tunnel 1"
-        }else if (direction == "UP" && last_station == "T1" && (location_age_seconds < 600)  && line == "KPL") {
-          StatusMessage = "In Tunnel 2"
-        }else if (departed == false){
-          StatusMessage = "Awaiting Departure"
-        }else{
-          StatusMessage = "Check OMS Linking"
-        }
-      };
-      if (departed == false){
-        StatusMessage = "Awaiting Departure"
-        return StatusMessage
-      };
-      if(speed == 0 && last_station_current == false){
-        if(last_station == "POMA" && origin == "TAIT"){
-          StatusMessage = "In Storage Road"
-        }else if(last_station == "TEHO" && origin == "WAIK"){
-          StatusMessage = "In Turn Back Road"
-        }else{
-          StatusMessage = "Stopped between stations"
-      };
-        return StatusMessage
-      }
-
-    if (StatusMessage == 0 || StatusMessage == false || typeof StatusMessage == "undefined"){
-      StatusMessage = "";
-    }
-    return StatusMessage;
-  }
 };
-
 //passenger count calculations
 function getPaxAtStation(calendar_id, service_id, line, station, direction){
 
