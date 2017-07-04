@@ -1,13 +1,17 @@
-app.controller('AppController',  ['$scope', 'currentServices', '$interval', '$timeout', '$mdSidenav', function ($scope, currentServices, $interval, $timeout, $mdSidenav) {
+app.controller('AppController',  ['$scope', 'currentServices', 'berthing', '$interval', '$timeout', '$mdSidenav', function ($scope, currentServices, berthing, $interval, $timeout, $mdSidenav) {
 
     var extraseconds
     var initialtime
+
     //initialise
       currentServices.async().then(function(d) {
         initialtime = d.data.Time
         $scope.time = new Date(initialtime).toJSON().substring(10,19).replace('T',' ').trim();
         $scope.currentServices = d.data.CurrentServices;
         extraseconds = 0
+      });
+      berthing.async().then(function(d) {
+        $scope.berthing = d.data;
       });
       //refresh data
       $interval(function () {
@@ -34,8 +38,19 @@ app.controller('AppController',  ['$scope', 'currentServices', '$interval', '$ti
 
       }, 1000);
 
-      $scope.sortType = ['kiwirail','departs'];
+
       $scope.sortReverse = false;
+      $scope.splitBy = ['UP','DOWN'];
+
+      $scope.getSort = function(view){
+        if(view == 'UP'){
+          return 'departs';
+        }else if(view == 'DOWN'){
+          return 'arrives';
+        };
+      }
+      $scope.sortType = ['kiwirail','departs'];
+
 
       $scope.toggleLeft = buildToggler('left');
       $scope.toggleRight = buildToggler('right');
@@ -55,6 +70,12 @@ app.controller('AppController',  ['$scope', 'currentServices', '$interval', '$ti
       $scope.show = function (toShow) {
         $scope.toShow = toShow;
       };
+      //for service detail bar
+      $scope.selectedID = "NONE";
+      $scope.detail = function (service_id) {
+        $scope.selectedID = service_id;
+      };
+
 
       function pad(n, width, z) {
         z = z || '0';

@@ -37,6 +37,29 @@ body {
   color: white;
 }
 
+.servicedetailtable{
+  width: 100%;
+}
+.servicedetailtable td{
+  width: 50%;
+}
+
+.HVLbackground{
+  background-color: #ef802f;
+}
+.MELbackground{
+  background-color: #ef802f;
+}
+.KPLbackground{
+  background-color: #dddb40;
+}
+.JVLbackground{
+  background-color: #45c4db;
+}
+.WRLbackground{
+  background-color: #ffd52f;
+}
+
 .table-inverse{
   background-color: black; /*#292b2c;*/
 }

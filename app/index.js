@@ -14,6 +14,7 @@ const tripSheet = require('./Data/tripSheet')
 const unitRoster = require('./Data/unitRoster')
 const passengerPercentage = require('./Data/passengerPercentage')
 const passengerAverage = require('./Data/passengerAverage')
+const berthing = require('./Data/shuntberthingM-F')
 
 //for recording
 const MongoClient = require('mongodb').MongoClient;
@@ -270,7 +271,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
   this.destination = getdestination(this.service_id,this.service_description,this.kiwirail,this.calendar_id);
   this.lat = lat;
   this.long = long;
-  this.meterage = getmeterage(this.lat,this.long,this.KRline);
+  this.meterage = Math.floor(getmeterage(this.lat,this.long,this.KRline));
   this.laststation = getlaststation(this.lat,this.long,this.meterage,this.KRline,this.direction)[0]
   this.laststationcurrent = getlaststation(this.lat,this.long,this.meterage,this.KRline,this.direction)[1]
   //variables needed to calculate own delay
@@ -1111,6 +1112,12 @@ app.get('/CurrentServices', (request, response) => {
   var Current = {"Time":CurrentUTC, CurrentServices}
   response.writeHead(200, {"Content-Type": "application/json"},{cache:false});
   response.write(JSON.stringify(Current));
+  response.end();
+})
+
+app.get('/berthing', (request, response) => {
+  response.writeHead(200, {"Content-Type": "application/json"},{cache:false});
+  response.write(JSON.stringify(berthing));
   response.end();
 })
 

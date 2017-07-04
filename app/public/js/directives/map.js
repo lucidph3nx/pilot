@@ -73,12 +73,19 @@ app.directive('map', ['currentServices', function(){
            });
        }
 
+       // Sets the map on all markers in the array.
+      function setMapOnAll(map) {
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].setMap(map);
+        }
+      }
        // show the map and place some markers
        initMap();
 
-      for (s = 0; s < scope.currentServices.length; s++){
-        setMarker(map, new google.maps.LatLng(scope.currentServices[s].lat, scope.currentServices[s].long), scope.currentServices[s].service_id, scope.currentServices[s].service_id);
-      };
+       for (s = 0; s < scope.currentServices.length; s++){
+         setMarker(map, new google.maps.LatLng(scope.currentServices[s].lat, scope.currentServices[s].long), scope.currentServices[s].service_id, scope.currentServices[s].service_id);
+       };
+
    };
 
    return {

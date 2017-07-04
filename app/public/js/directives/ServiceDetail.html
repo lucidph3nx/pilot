@@ -1,0 +1,45 @@
+  <section layout="column" flex>
+    <md-sidenav class="md-sidenav-right" md-component-id="right" md-whiteframe="4">
+
+
+      <div ng-repeat="service in currentServices | filter: { service_id: selectedID }:true">
+        <md-toolbar>
+          <h1 class="md-toolbar-tools">{{ service.service_id }}     {{service.line}}</h1>
+        </md-toolbar>
+        <table class="servicedetailtable">
+          <tr><td>Schedule Variation</td><td>{{ service.schedule_variance }}</td></tr>
+          <tr><td>Kiwirail Variation</td><td>{{ service.varianceMinutes }}</td></tr>
+          <tr><td>Unit ID</td><td>{{ service.linked_unit }}</td></tr>
+          <tr><td>Cars</td><td>{{ service.cars }}</td></tr>
+          <tr><td>Origin</td><td>{{ service.origin }}</td></tr>
+          <tr><td>Departs</td><td>{{ service.departs }}</td></tr>
+          <tr><td>Meterage</td><td>{{ service.meterage }}</td></tr>
+          <tr><td>Last Station</td><td>{{ service.laststation }}</td></tr>
+          <tr><td>Destination</td><td>{{ service.destination }}</td></tr>
+          <tr><td>Arrives</td><td>{{ service.arrives }}</td></tr>
+          <tr><td>Speed</td><td>{{ service.speed }} km/h</td></tr>
+          <tr><td>Location Age</td><td>{{ service.location_age }}</td></tr>
+          <tr><td>Estimated Pax</td><td>{{ service.passengerEstimation }}</td></tr>
+          <tr><td>Current Status</td><td>{{ service.statusMessage }}</td></tr>
+        </table>
+        <p></p>
+        <h4>Unit</h4>
+        <table class="servicedetailtable">
+          <tr><td>Next Service</td><td>{{ service.NextService }}</td></tr>
+          <tr><td>Next Time</td><td>{{ service.NextTime }}</td></tr>
+        </table>
+        <p></p>
+        <h4>Locomotive Engineer</h4>
+        <table class="servicedetailtable">
+          <tr><td>Next Service</td><td>{{ service.LENextService }}</td></tr>
+          <tr><td>Next Time</td><td>{{ service.LENextServiceTime }}</td></tr>
+        </table>
+        <p></p>
+        <h4>Train Manager</h4>
+        <table class="servicedetailtable">
+          <tr><td>Next Service</td><td>{{ service.TMNextService }}</td></tr>
+          <tr><td>Next Time</td><td>{{ service.TMNextServiceTime }}</td></tr>
+        </table>
+      </div>
+    </md-sidenav>
+  </section>
