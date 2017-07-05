@@ -62,7 +62,6 @@
             <td id="timeResults" ng-class="{
                                             'linkingissue' : service.statusArray[1] == 'Check OMS Linking',
                                             'intunnel' : service.statusArray[1] == 'In Rimutaka Tunnel' || service.statusArray[1] == 'In Tawa Tunnel' || service.statusArray[1] == 'In Tunnel 1' || service.statusArray[1] == 'In Tunnel 2',
-                                            'awaitingdeparture' : service.statusArray[1] == 'Awaiting Departure',
                                             }">{{ service.location_age }}</td>
             <td id="timeResults" class="varianceNormal">{{ service.arrives }}</td>
             <!--<td id="stationResults" class="varianceNormal">{{ service.destination }}</td>-->

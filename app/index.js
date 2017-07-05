@@ -148,12 +148,18 @@ function readresponse(GeVisJSON){
 
         //new service object
         var service = new Service(service_id,service_date,service_description,linked_unit,speed,compass,location_age,schedule_variance,lat,long);
+
+
         //for debug
-        /*
-        if(service.service_id == "201"){
-          console.log(service);
+        if(service.service_id == "1604" || service.service_id == "1609"){
+          //console.log(service);
+          fs.appendFile('WRLDEBUGLOG.txt', (JSON.stringify(service)+ "\r\n"), 'utf8', function (err){
+            if (err) {
+              return console.log(err);
+          }
+        })
         };
-        */
+
         CurrentServices.push(service)
 			};
 		};
@@ -281,7 +287,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
   this.destination = getdestination(this.service_id,this.service_description,this.kiwirail,this.calendar_id);
   this.lat = lat;
   this.long = long;
-  this.meterage = Math.floor(getmeterage(this.lat,this.long,this.KRline));
+  this.meterage = Math.floor(getmeterage(this.lat,this.long,this.KRline,this.line,this.direction));
   this.laststation = getlaststation(this.lat,this.long,this.meterage,this.KRline,this.direction)[0]
   this.laststationcurrent = getlaststation(this.lat,this.long,this.meterage,this.KRline,this.direction)[1]
   //variables needed to calculate own delay
@@ -335,7 +341,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
       var StatusArray = ["","",""]; //this will be in the format of [0] = delays, [1] = tracking, [2] = stopped
 
       //filter out the non metlinks
-      if(this.kiwirail_boolean){
+      if(this.kiwirail){
         TempStatus = "Non-Metlink Service";
         if(StatusMessage == "" && stopProcessing == false){StatusMessage = TempStatus};
         stopProcessing = true;
@@ -347,22 +353,22 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
         stopProcessing = true;
       };
       //filter already arrived trains
-      if(this.last_station == this.destination){
+      if(this.laststation == this.destination){
         TempStatus = "Arriving";
         if(StatusMessage == "" && stopProcessing == false){StatusMessage = TempStatus};
         stopProcessing = true;
       }
       //the early/late status generation
-      if (this.schedule_variance_min < -1.5){
+      if (this.schedule_variance_min < -1.5 && this.kiwirail == false){
           TempStatus = "Running Early";
           StatusArray[0] = TempStatus;
-      }else if (this.schedule_variance_min <5){
+      }else if (this.schedule_variance_min <5 && this.kiwirail == false){
           TempStatus = "Running Ok";
           StatusArray[0] = TempStatus;
-      }else if (this.schedule_variance_min <15){
+      }else if (this.schedule_variance_min <15 && this.kiwirail == false){
           TempStatus = "Running Late";
           StatusArray[0] = TempStatus;
-      }else if (this.schedule_variance_min >=15){
+      }else if (this.schedule_variance_min >=15 && this.kiwirail == false){
           TempStatus = "Running Very Late";
           StatusArray[0] = TempStatus;
       };
@@ -422,7 +428,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
         };
         if(stopProcessing == false){StatusMessage = TempStatus};
       };
-      if (this.departed == false){
+      if (this.departed == false && this.kiwirail == false){
         TempStatus = "Awaiting Departure";
         StatusArray[0] = TempStatus;
         StatusArray[1] = TempStatus;
@@ -875,7 +881,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     return fixedvariance
   };
   //mathematical functions
-  function getmeterage(lat,long,KRline){
+  function getmeterage(lat,long,KRline,line){
     //finds closest and next closest points from records
     var position = {"coords":{"latitude": lat,"longitude": long}};
     var locations = [];
@@ -902,11 +908,23 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
         }else if(distance(locations[i],position.coords)>closest_distance && distance(locations[i],position.coords)<nextclosest_distance){
           nextclosest = locations[i];
           nextclosest_distance = distance(locations[i],position.coords);
-          //checks to make sure next closest shouldnt be next point beyond
+          //Need to ensure that current point is between the two points, not outside
         }else if (distance(nextclosest,closest) < distance(nextclosest,position.coords)){
-            nextclosest = locations[closest.order+1];
-            nextclosest_distance = distance(locations[closest.order+1], position.coords);
+          //
+          //if(direction == "DOWN"){
+          //  nextclosest = locations[closest.order+1];
+          //  nextclosest_distance = distance(locations[closest.order+1], position.coords);
+          //}else           if(direction == "UP"){
+
+            //NEED TO TAKE INTO ACCOUNT BEARING
+            //if bearing of closest is in same 180 degree range
+            //if (abs(bearing(position.coords,closest) - bearing(position.coords,nextclosest)))
+
+            nextclosest = locations[closest.order-1];
+            nextclosest_distance = distance(locations[closest.order-1], position.coords);
+          //}
         };
+        if(line == "WRL" && closest.order > 110){console.log(closest.order + " " + nextclosest.order)};
     };
     //console.log(closest.order +" " + nextclosest.order);
     //checks the order (direction) of the points selected
@@ -946,6 +964,23 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     var d = R * c;
     return d;
   }
+  function bearing(position1,position2){
+    var lat1=position1.latitude;
+    var lat2=position2.latitude;
+    var lon1=position1.longitude;
+    var lon2=position2.longitude;
+    var R = 6371000; // metres
+    var φ1 = lat1 * Math.PI / 180;
+    var φ2 = lat2 * Math.PI / 180;
+    var Δφ = (lat2-lat1) * Math.PI / 180;
+    var Δλ = (lon2-lon1) * Math.PI / 180;
+
+    var y = Math.sin(λ2-λ1) * Math.cos(φ2);
+    var x = Math.cos(φ1)*Math.sin(φ2) -
+            Math.sin(φ1)*Math.cos(φ2)*Math.cos(λ2-λ1);
+    var brng = Math.atan2(y, x).toDegrees();
+    return brng
+  };
   //high level functions
   function getlaststation(lat,lon,meterage,KRLine,direction){
     //code to check and determine if at stations
@@ -1124,7 +1159,7 @@ function getPaxAtStation(calendar_id, service_id, line, station, direction){
     stationCount = "";
   };
 
-return stationCount
+  return stationCount
 
   function getCountAndPeakType(calendar_id,service_id){
     var peakType
@@ -1142,7 +1177,6 @@ return stationCount
     };
   };
 };
-
 
 app.use('/public', express.static(path.join(__dirname, 'public')))
 app.get('/pilot', (request, response) => {
