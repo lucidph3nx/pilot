@@ -898,33 +898,43 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     var closest = locations[0];
     var nextclosest = locations[1]
     var closest_distance = distance(closest,position.coords);
-    var nextclosest_distance
+    var nextclosest_distance = distance(nextclosest,position.coords);
+
     for(var i=1;i<locations.length;i++){
+        //cycle component
         if(distance(locations[i],position.coords)<closest_distance){
              nextclosest = closest;
              nextclosest_distance = closest_distance;
              closest_distance=distance(locations[i],position.coords);
              closest=locations[i];
-        }else if(distance(locations[i],position.coords)>closest_distance && distance(locations[i],position.coords)<nextclosest_distance){
+
+        //slowing component
+      }else if(distance(locations[i],position.coords)>closest_distance && distance(locations[i],position.coords)<nextclosest_distance && (Math.abs(bearing(position.coords,closest) - bearing(position.coords,nextclosest)) >180)){
+
           nextclosest = locations[i];
           nextclosest_distance = distance(locations[i],position.coords);
-          //Need to ensure that current point is between the two points, not outside
+
+        //Need to ensure that current point is between the two points, not outside
         }else if (distance(nextclosest,closest) < distance(nextclosest,position.coords)){
-          //
-          //if(direction == "DOWN"){
-          //  nextclosest = locations[closest.order+1];
-          //  nextclosest_distance = distance(locations[closest.order+1], position.coords);
-          //}else           if(direction == "UP"){
 
-            //NEED TO TAKE INTO ACCOUNT BEARING
-            //if bearing of closest is in same 180 degree range
-            //if (abs(bearing(position.coords,closest) - bearing(position.coords,nextclosest)))
-
+          if(closest.order > nextclosest.order){
+            nextclosest = locations[closest.order+1];
+            nextclosest_distance = distance(locations[(closest.order+1)], position.coords);
+          }else{
             nextclosest = locations[closest.order-1];
-            nextclosest_distance = distance(locations[closest.order-1], position.coords);
+            nextclosest_distance = distance(locations[(closest.order-1)], position.coords);
+          }
+
+            //NEED TO TAKE INTO ACCOUNT BEARING???
+            //if bearing of closest is in same 180 degree range
+            //if (Math.abs(bearing(position.coords,closest) - bearing(position.coords,nextclosest)) >180)
+
+
+            //nextclosest = locations[closest.order-1];
+            //nextclosest_distance = distance(locations[closest.order-1], position.coords);
           //}
         };
-        if(line == "WRL" && closest.order > 110){console.log(closest.order + " " + nextclosest.order)};
+        if(line == "WRL" && closest.order > 110){console.log(closest.order + " ("+ bearing(position.coords,closest) +") "+ nextclosest.order+ " ("+ bearing(position.coords,nextclosest) + ")")};
     };
     //console.log(closest.order +" " + nextclosest.order);
     //checks the order (direction) of the points selected
@@ -972,13 +982,15 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     var R = 6371000; // metres
     var φ1 = lat1 * Math.PI / 180;
     var φ2 = lat2 * Math.PI / 180;
-    var Δφ = (lat2-lat1) * Math.PI / 180;
-    var Δλ = (lon2-lon1) * Math.PI / 180;
+    var λ1 = lon1 * Math.PI / 180;
+    var λ2 = lon2 * Math.PI / 180;
 
     var y = Math.sin(λ2-λ1) * Math.cos(φ2);
     var x = Math.cos(φ1)*Math.sin(φ2) -
             Math.sin(φ1)*Math.cos(φ2)*Math.cos(λ2-λ1);
-    var brng = Math.atan2(y, x).toDegrees();
+    var brng = Math.atan2(y, x) * 180 / Math.PI;
+
+    //if (brng < 0 ){brng = brng+360};
     return brng
   };
   //high level functions
