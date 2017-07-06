@@ -910,33 +910,36 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
              closest=locations[i];
 
         //slowing component
-      }else if (distance(locations[i],position.coords)>closest_distance && distance(locations[i],position.coords)<nextclosest_distance && (Math.abs(bearing(position.coords,closest) - bearing(position.coords,nextclosest)) >180)){
-        //(inbetween(nextclosest,position.coords,closest)) break;//
+      }else if (distance(locations[i],position.coords)>closest_distance && distance(locations[i],position.coords)<nextclosest_distance){
+        if (inbetween(nextclosest,position.coords,closest)){
+          //do nothing
+        }else{
           nextclosest = locations[i];
           nextclosest_distance = distance(locations[i],position.coords);
-
-        //Need to ensure that current point is between the two points, not outside
-        }else if (distance(nextclosest,closest) < distance(nextclosest,position.coords)){
-
-          if(closest.order > nextclosest.order){
-            nextclosest = locations[closest.order+1];
-            nextclosest_distance = distance(locations[(closest.order+1)], position.coords);
-          }else{
-            nextclosest = locations[closest.order-1];
-            nextclosest_distance = distance(locations[(closest.order-1)], position.coords);
-          }
-
-            //NEED TO TAKE INTO ACCOUNT BEARING???
-            //if bearing of closest is in same 180 degree range
-            //if (Math.abs(bearing(position.coords,closest) - bearing(position.coords,nextclosest)) >180)
-
-
-            //nextclosest = locations[closest.order-1];
-            //nextclosest_distance = distance(locations[closest.order-1], position.coords);
-          //}
         };
-        //if(line == "WRL" && closest.order > 110){console.log(closest.order + " ("+ bearing(position.coords,closest) +") "+ nextclosest.order+ " ("+ bearing(position.coords,nextclosest) + ")")};
-    };
+        //Need to ensure that current point is between the two points, not outside
+        // }else if (distance(nextclosest,closest) < distance(nextclosest,position.coords)){
+        //
+        //   if(closest.order > nextclosest.order){
+        //     nextclosest = locations[closest.order+1];
+        //     nextclosest_distance = distance(locations[(closest.order+1)], position.coords);
+        //   }else{
+        //     nextclosest = locations[closest.order-1];
+        //     nextclosest_distance = distance(locations[(closest.order-1)], position.coords);
+        //   }
+        //
+        //     //NEED TO TAKE INTO ACCOUNT BEARING???
+        //     //if bearing of closest is in same 180 degree range
+        //     //if (Math.abs(bearing(position.coords,closest) - bearing(position.coords,nextclosest)) >180)
+        //
+        //
+        //     //nextclosest = locations[closest.order-1];
+        //     //nextclosest_distance = distance(locations[closest.order-1], position.coords);
+        //   //}
+        // };
+    }
+      if(line == "WRL" && closest.order > 110){console.log(closest.order + " "+ nextclosest.order)};
+  };
     //console.log(closest.order +" " + nextclosest.order);
     //checks the order (direction) of the points selected
     if (closest.order < nextclosest.order){
@@ -953,23 +956,23 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
       var ShortestLength = ((XX * (position.coords.latitude - nextclosest.latitude)) + (YY * (position.coords.longitude - nextclosest.longitude))) / ((XX * XX) + (YY * YY))
       var Vlocation = {"latitude": (nextclosest.latitude + XX * ShortestLength),"longitude": (nextclosest.longitude + YY * ShortestLength)};
       meterage = closest.meterage - distance(Vlocation,closest)
-    }
+    };
     return meterage
     };
 
-    function inbetween(position1,position2,position3){
-        //function determines if position 2 is inbetween 1 & 3
-        var AB = bearing(position1,position2);
-        var BC = bearing(position2,position3);
+  function inbetween(position1,position2,position3){
+      //function determines if position 2 is inbetween 1 & 3
+      var AB = bearing(position1,position2);
+      var BC = bearing(position2,position3);
 
-        var BCZero = BC - AB
+      var BCZero = BC - AB
 
-        if (BCZero > 90 || BCZero < -90){
-          return true
-        }else{
-          return false
-        }
-      };
+      if (BCZero > 90 || BCZero < -90){
+        return true
+      }else{
+        return false
+      }
+    };
 
   function distance(position1,position2){
     var lat1=position1.latitude;
@@ -989,7 +992,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
 
     var d = R * c;
     return d;
-  }
+  };
   function bearing(position1,position2){
     var lat1=position1.latitude;
     var lat2=position2.latitude;
