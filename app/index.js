@@ -343,6 +343,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
       //filter out the non metlinks
       if(this.kiwirail){
         TempStatus = "Non-Metlink Service";
+        StatusArray[0] = TempStatus;
         if(StatusMessage == "" && stopProcessing == false){StatusMessage = TempStatus};
         stopProcessing = true;
       };
@@ -909,21 +910,21 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
              closest=locations[i];
 
         //slowing component
-      }else if(distance(locations[i],position.coords)>closest_distance && distance(locations[i],position.coords)<nextclosest_distance && (Math.abs(bearing(position.coords,closest) - bearing(position.coords,nextclosest)) >180)){
+      }else if (inbetween(nextclosest,position.coords,closest)) break;//(distance(locations[i],position.coords)>closest_distance && distance(locations[i],position.coords)<nextclosest_distance && (Math.abs(bearing(position.coords,closest) - bearing(position.coords,nextclosest)) >180)){
 
-          nextclosest = locations[i];
-          nextclosest_distance = distance(locations[i],position.coords);
-
-        //Need to ensure that current point is between the two points, not outside
-        }else if (distance(nextclosest,closest) < distance(nextclosest,position.coords)){
-
-          if(closest.order > nextclosest.order){
-            nextclosest = locations[closest.order+1];
-            nextclosest_distance = distance(locations[(closest.order+1)], position.coords);
-          }else{
-            nextclosest = locations[closest.order-1];
-            nextclosest_distance = distance(locations[(closest.order-1)], position.coords);
-          }
+        //   nextclosest = locations[i];
+        //   nextclosest_distance = distance(locations[i],position.coords);
+        //
+        // //Need to ensure that current point is between the two points, not outside
+        // }else if (distance(nextclosest,closest) < distance(nextclosest,position.coords)){
+        //
+        //   if(closest.order > nextclosest.order){
+        //     nextclosest = locations[closest.order+1];
+        //     nextclosest_distance = distance(locations[(closest.order+1)], position.coords);
+        //   }else{
+        //     nextclosest = locations[closest.order-1];
+        //     nextclosest_distance = distance(locations[(closest.order-1)], position.coords);
+        //   }
 
             //NEED TO TAKE INTO ACCOUNT BEARING???
             //if bearing of closest is in same 180 degree range
@@ -933,7 +934,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
             //nextclosest = locations[closest.order-1];
             //nextclosest_distance = distance(locations[closest.order-1], position.coords);
           //}
-        };
+        //};
         if(line == "WRL" && closest.order > 110){console.log(closest.order + " ("+ bearing(position.coords,closest) +") "+ nextclosest.order+ " ("+ bearing(position.coords,nextclosest) + ")")};
     };
     //console.log(closest.order +" " + nextclosest.order);
@@ -955,6 +956,21 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     }
     return meterage
     };
+
+    function inbetween(position1,position2,position3){
+        //function determines if position 2 is inbetween 1 & 3
+        var AB = bearing(position1,position2);
+        var BC = bearing(position2,position3);
+
+        var BCZero = BC - AB
+
+        if (BCZero > 90 || BCZero < -90){
+          return true
+        }else{
+          return false
+        }
+      };
+
   function distance(position1,position2){
     var lat1=position1.latitude;
     var lat2=position2.latitude;
