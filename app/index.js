@@ -935,7 +935,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
             //nextclosest_distance = distance(locations[closest.order-1], position.coords);
           //}
         //};
-        if(line == "WRL" && closest.order > 110){console.log(closest.order + " ("+ bearing(position.coords,closest) +") "+ nextclosest.order+ " ("+ bearing(position.coords,nextclosest) + ")")};
+        //if(line == "WRL" && closest.order > 110){console.log(closest.order + " ("+ bearing(position.coords,closest) +") "+ nextclosest.order+ " ("+ bearing(position.coords,nextclosest) + ")")};
     };
     //console.log(closest.order +" " + nextclosest.order);
     //checks the order (direction) of the points selected
