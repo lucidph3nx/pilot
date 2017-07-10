@@ -6418,5 +6418,5 @@ module.exports = [
 {"service_id":"6389", "arrives":"24:25", "departs":"24:25", "station":"WAIK", "station_sequence":0},
 {"service_id":"6389", "arrives":"24:40", "departs":"24:40", "station":"PAEK", "station_sequence":1},
 {"service_id":"6263", "arrives":"18:24", "departs":"18:24", "station":"WAIK", "station_sequence":0},
-{"service_id":"6389", "arrives":"18:36", "departs":"18:36", "station":"PAEK", "station_sequence":1}
+{"service_id":"6263", "arrives":"18:36", "departs":"18:36", "station":"PAEK", "station_sequence":1}
 ];

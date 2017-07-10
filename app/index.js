@@ -89,19 +89,22 @@ function getnewgevisjson(){
   	response.on('end',function(){
   		GotResponse = true
 
-      if(dummydata){
-        GeVisJSON = dummyCurrentServices
+      if(body.substring(0,1) == "<"){
+        console.log("GeVis returned service unavailable");
       }else{
-        GeVisJSON = JSON.parse(body)
-      };
+        if(dummydata){
+          GeVisJSON = dummyCurrentServices
+        }else{
+          GeVisJSON = JSON.parse(body)
+        };
 
-      if(body == {"metadata":{"outputSpatialReference":0},"features":[]}){
-        console.log("GeVis Vehicles responded empty @" + Date(CurrentUTC).toJSON().substring(10,19).replace('T',' ').trim())
-      }else{
-        console.log("GeVis loaded ok")
+        if(body == {"metadata":{"outputSpatialReference":0},"features":[]}){
+          console.log("GeVis Vehicles responded empty @" + Date(CurrentUTC).toJSON().substring(10,19).replace('T',' ').trim())
+        }else{
+          console.log("GeVis loaded ok")
       };
-
   		readresponse(GeVisJSON)
+    };
   	});
   }).on('error', function(e) {
     console.log("Got error: " + e.message);
@@ -620,6 +623,8 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     };
   };
   function getUnitNextService(service_id,calendar_id){
+    //trying to solve the 5 min to midnight error
+    if(service_id == undefined || calendar_id == undefined) {return ""};
     var NextService;
     for(s = 0; s <unitRoster.length; s++){
       if (unitRoster[s].calendar_id == calendar_id && unitRoster[s].service_id == (service_id)){
@@ -762,6 +767,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
           case "PA":
           case "PM":
           case "PU":
+          case "PL":
           case "TW":
           case "WK":
             line = ["KPL",false];
