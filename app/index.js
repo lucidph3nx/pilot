@@ -525,7 +525,10 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
       //console.log (ts + " & " + st);
       if (service_id == stopTimes[st].service_id){
         //get start and end time
-        if(stopTimes[st+1].station_sequence == 0){
+        if (st == stopTimes.length){
+          arrives = stopTimes[st].arrives
+          break;
+        }else if(stopTimes[st+1].station_sequence == 0){
           arrives = stopTimes[st].arrives
           break;
         };
