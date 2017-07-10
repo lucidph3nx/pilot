@@ -119,23 +119,26 @@ function readresponse(GeVisJSON){
   CurrentTime = new Date(CurrentUTC).toJSON().substring(10,19).replace('T',' ').trim();
   CurrentDate = new Date(CurrentUTC).toJSON().substring(0,10).replace('-','').trim();
 
+  //console.log(GeVisJSON.features.length);
 	//show all active services
-	for (i = 0; i < GeVisJSON.features.length; i++) {
+	for (gj = 0; gj < GeVisJSON.features.length; gj++) {
 		//get those linked to service
-		if(GeVisJSON.features[i].attributes.TrainID != ""){
+		if(GeVisJSON.features[gj].attributes.TrainID != ""){
 			//get those south of levin and east of cook strait
-			if(GeVisJSON.features[i].attributes.Longitude > 174.5 & GeVisJSON.features[i].attributes.Latitude < -40.625887 & GeVisJSON.features[i].attributes.EquipmentDesc != "Rail Ferry     " ){
-        //LastTrain.push(GeVisJSON.features[i].attributes.TrainID + "   " + GeVisJSON.features[i].attributes.TrainDesc +"   " + GeVisJSON.features[i].attributes.VehicleID + "   " + GeVisJSON.features[i].attributes.Station);
-        var service_id = GeVisJSON.features[i].attributes.TrainID
-        var service_date = GeVisJSON.features[i].attributes.TrainDate
-        var service_description = GeVisJSON.features[i].attributes.TrainDesc
-        var linked_unit = GeVisJSON.features[i].attributes.VehicleID
-        var speed = GeVisJSON.features[i].attributes.VehicleSpeed
-        var compass = GeVisJSON.features[i].attributes.DirectionCompass
-        var location_age = GeVisJSON.features[i].attributes.PositionAge
-        var schedule_variance = GeVisJSON.features[i].attributes.DelayTime
-        var lat = GeVisJSON.features[i].attributes.Latitude
-        var long = GeVisJSON.features[i].attributes.Longitude
+      //console.log(GeVisJSON.features[gj].attributes.TrainID);
+			if(GeVisJSON.features[gj].attributes.Longitude > 174.5 & GeVisJSON.features[gj].attributes.Latitude < -40.625887 & GeVisJSON.features[gj].attributes.EquipmentDesc != "Rail Ferry     " ){
+        //LastTrain.push(GeVisJSON.features[gj].attributes.TrainID + "   " + GeVisJSON.features[gj].attributes.TrainDesc +"   " + GeVisJSON.features[gj].attributes.VehicleID + "   " + GeVisJSON.features[gj].attributes.Station);
+        var service_id = GeVisJSON.features[gj].attributes.TrainID
+        //console.log(service_id);
+        var service_date = GeVisJSON.features[gj].attributes.TrainDate
+        var service_description = GeVisJSON.features[gj].attributes.TrainDesc
+        var linked_unit = GeVisJSON.features[gj].attributes.VehicleID
+        var speed = GeVisJSON.features[gj].attributes.VehicleSpeed
+        var compass = GeVisJSON.features[gj].attributes.DirectionCompass
+        var location_age = GeVisJSON.features[gj].attributes.PositionAge
+        var schedule_variance = GeVisJSON.features[gj].attributes.DelayTime
+        var lat = GeVisJSON.features[gj].attributes.Latitude
+        var long = GeVisJSON.features[gj].attributes.Longitude
 
         //var otherunit
         //var otherunitlat
@@ -151,15 +154,15 @@ function readresponse(GeVisJSON){
 
 
         //for debug
-        if(service.service_id == "1604" || service.service_id == "1609"){
-          //console.log(service);
-          fs.appendFile('WRLDEBUGLOG.txt', (JSON.stringify(service)+ "\r\n"), 'utf8', function (err){
-            if (err) {
-              return console.log(err);
-          }
-        })
-        };
-
+        // if(service.service_id == "1604" || service.service_id == "1609"){
+        //   //console.log(service);
+        //   fs.appendFile('WRLDEBUGLOG.txt', (JSON.stringify(service)+ "\r\n"), 'utf8', function (err){
+        //     if (err) {
+        //       return console.log(err);
+        //   }
+        // })
+        // };
+        //console.log(service.linked_unit);
         CurrentServices.push(service)
 			};
 		};
@@ -218,28 +221,28 @@ function readresponse(GeVisJSON){
         };
         //checking if next entry on stopTimes exists and is zero, indicating end of service
         if(st+1 < stopTimes.length){
-        if(stopTimes[st+1].station_sequence == 0){
-          checkarrives = stopTimes[st].arrives
-          //then check if already in active services
-          if (checkdeparts < CurrentTimeMinus1 && checkarrives > CurrentTimePlus5 ){
-
-            match = false
+          if(stopTimes[st+1].station_sequence == 0){
+            checkarrives = stopTimes[st].arrives
             //then check if already in active services
-            for (cs = 0; cs < CurrentServices.length; cs++){
-              if (tripSheet[ts].service_id == CurrentServices[cs].service_id){
-                match = true;
-            };};
-              if (match == false){
-                var service = new Service(tripSheet[ts].service_id,compatibleservicedate,"FROM TIMETABLE","","","","00:00",0,"","");
-                for (csa = 0; csa < CurrentServices.length; csa++){
-                  if (CurrentServices[csa].service_id == service.LastService){
-                    service.statusMessage = "Previous Service Delayed"
-                  }
+            if (checkdeparts < CurrentTimeMinus1 && checkarrives > CurrentTimePlus5 ){
+
+              match = false
+              //then check if already in active services
+              for (cs = 0; cs < CurrentServices.length; cs++){
+                if (tripSheet[ts].service_id == CurrentServices[cs].service_id){
+                  match = true;
+              };};
+                if (match == false){
+                  var service = new Service(tripSheet[ts].service_id,compatibleservicedate,"FROM TIMETABLE","","","","00:00",0,"","");
+                  for (csa = 0; csa < CurrentServices.length; csa++){
+                    if (CurrentServices[csa].service_id == service.LastService){
+                      service.statusMessage = "Previous Service Delayed"
+                    }
+                  };
+                  CurrentServices.push(service)
                 };
-                CurrentServices.push(service)
-              };
-          };
-        }};
+            };
+          }};
       }
     };
   }};
@@ -344,6 +347,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
       if(this.kiwirail){
         TempStatus = "Non-Metlink Service";
         StatusArray[0] = TempStatus;
+        StatusArray[1] = TempStatus;
         if(StatusMessage == "" && stopProcessing == false){StatusMessage = TempStatus};
         stopProcessing = true;
       };
@@ -360,16 +364,16 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
         stopProcessing = true;
       }
       //the early/late status generation
-      if (this.schedule_variance_min < -1.5 && this.kiwirail == false){
+      if (this.varianceFriendly < -1.5 && this.kiwirail == false){
           TempStatus = "Running Early";
           StatusArray[0] = TempStatus;
-      }else if (this.schedule_variance_min <5 && this.kiwirail == false){
+      }else if (this.varianceFriendly <5 && this.kiwirail == false){
           TempStatus = "Running Ok";
           StatusArray[0] = TempStatus;
-      }else if (this.schedule_variance_min <15 && this.kiwirail == false){
+      }else if (this.varianceFriendly <15 && this.kiwirail == false){
           TempStatus = "Running Late";
           StatusArray[0] = TempStatus;
-      }else if (this.schedule_variance_min >=15 && this.kiwirail == false){
+      }else if (this.varianceFriendly >=15 && this.kiwirail == false){
           TempStatus = "Running Very Late";
           StatusArray[0] = TempStatus;
       };
@@ -896,50 +900,47 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     if(typeof KRline == 'undefined' || KRline == ""){
       return ""
     }
-    var closest = locations[0];
-    var nextclosest = locations[1]
-    var closest_distance = distance(closest,position.coords);
-    var nextclosest_distance = distance(nextclosest,position.coords);
+    var point1 = locations[0];
+    var point2 = locations[1];
+    var closest
+    var nextclosest
+    var point1_distance = distance(point1,position.coords);
+    var point2_distance = distance(point2,position.coords);
 
-    for(var i=1;i<locations.length;i++){
+    for(i=1;i<locations.length;i++){
         //cycle component
-        if(distance(locations[i],position.coords)<closest_distance){
-             nextclosest = closest;
-             nextclosest_distance = closest_distance;
-             closest_distance=distance(locations[i],position.coords);
-             closest=locations[i];
+        //console.log(inbetween(point2,position.coords,point1));
+        if(distance(locations[i],position.coords) < point1_distance){
+          //if((inbetween(point2,position.coords,point1) == false)){console.log("not inbetween");};
+            //console.log("itterated " + point1.order);
+             point2 = point1;
+             point2_distance = point1_distance;
+             point1 = locations[i];
+             point1_distance = distance(locations[i] , position.coords);
 
-        //slowing component
-      }else if (distance(locations[i],position.coords)>closest_distance && distance(locations[i],position.coords)<nextclosest_distance){
-        if (inbetween(nextclosest,position.coords,closest)){
-          //do nothing
+        //stopping component
+        }else if (inbetween(point2,position.coords,point1)){
+          //stop
         }else{
-          nextclosest = locations[i];
-          nextclosest_distance = distance(locations[i],position.coords);
+          //keep on cycling
+          point2 = point1;
+          point2_distance = point1_distance;
+          point1 = locations[i];
+          point1_distance = distance(locations[i],position.coords);
         };
-        //Need to ensure that current point is between the two points, not outside
-        // }else if (distance(nextclosest,closest) < distance(nextclosest,position.coords)){
-        //
-        //   if(closest.order > nextclosest.order){
-        //     nextclosest = locations[closest.order+1];
-        //     nextclosest_distance = distance(locations[(closest.order+1)], position.coords);
-        //   }else{
-        //     nextclosest = locations[closest.order-1];
-        //     nextclosest_distance = distance(locations[(closest.order-1)], position.coords);
-        //   }
-        //
-        //     //NEED TO TAKE INTO ACCOUNT BEARING???
-        //     //if bearing of closest is in same 180 degree range
-        //     //if (Math.abs(bearing(position.coords,closest) - bearing(position.coords,nextclosest)) >180)
-        //
-        //
-        //     //nextclosest = locations[closest.order-1];
-        //     //nextclosest_distance = distance(locations[closest.order-1], position.coords);
-        //   //}
-        // };
-    }
-      if(line == "WRL" && closest.order > 110){console.log(closest.order + " "+ nextclosest.order)};
-  };
+      };//(distance(locations[i],position.coords)>closest_distance && distance(locations[i],position.coords)<nextclosest_distance && (Math.abs(bearing(position.coords,closest) - bearing(position.coords,nextclosest)) >180)){
+
+      if(distance(point1,position.coords) < distance(point2,position.coords)){
+        closest = point1;
+        nextclosest = point2;
+      } else {
+        closest = point2;
+        nextclosest = point1;
+      };
+      //console.log("closest = " + closest);
+      //if(line == "JVL"){console.log(closest.order + " "+ nextclosest.order)};
+      //if(line == "WRL" && closest.order > 110){console.log(closest.order + " "+ nextclosest.order)};
+
     //console.log(closest.order +" " + nextclosest.order);
     //checks the order (direction) of the points selected
     if (closest.order < nextclosest.order){
@@ -962,18 +963,18 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
 
   function inbetween(position1,position2,position3){
       //function determines if position 2 is inbetween 1 & 3
-      var AB = bearing(position1,position2);
+      var AB = bearing(position2,position1);
       var BC = bearing(position2,position3);
-
+      //console.log(BC + " - " + AB);
       var BCZero = BC - AB
-
-      if (BCZero > 90 || BCZero < -90){
-        return true
-      }else{
+      //console.log(BCZero);
+      //console.log((BCZero > -90 && BCZero < 90));
+      if (BCZero > -90 && BCZero < 90){
         return false
+      }else{
+        return true
       }
     };
-
   function distance(position1,position2){
     var lat1=position1.latitude;
     var lat2=position2.latitude;
@@ -1057,45 +1058,45 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     var prevmeterage
     for (st = 0; st < stopTimes.length; st++){
       if (direction == "UP"){
-      if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) < meterage){
+        if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) < meterage){
           prevstation = stopTimes[st].station
           prevtime = stopTimes[st].departs
           prevmeterage = getMeterageOfStation(stopTimes[st].station)
-      }
-  }else{
-    if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) > meterage){
-        prevstation = stopTimes[st].station
-        prevtime = stopTimes[st].departs
-        prevmeterage = getMeterageOfStation(stopTimes[st].station)
-    }
-  }}
-  if(prevtime == undefined){
-    //console.log(prevstation + " " + service_id)
-  }
-    return [prevtime,prevmeterage,prevstation]
-  };
+        };
+        }else{
+          if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) > meterage){
+              prevstation = stopTimes[st].station
+              prevtime = stopTimes[st].departs
+              prevmeterage = getMeterageOfStation(stopTimes[st].station)
+          }
+        }}
+        if(prevtime == undefined){
+          //console.log(prevstation + " " + service_id)
+        }
+          return [prevtime,prevmeterage,prevstation]
+        };
   function getNextStnDetails(meterage,direction,service_id){
     var nextstation
     var nexttime
     var nextmeterage
     for (st = 0; st < stopTimes.length; st++){
       if (direction == "UP"){
-      if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) > meterage){
-          nextstation = stopTimes[st].station
-          nexttime = stopTimes[st].departs
-          nextmeterage = getMeterageOfStation(stopTimes[st].station)
-          break;
-      }
-  }else{
-    if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) < meterage){
-        nextstation = stopTimes[st].station
-        nexttime = stopTimes[st].departs
-        nextmeterage = getMeterageOfStation(stopTimes[st].station)
-        break;
-    }
-  }}
-    return [nexttime,nextmeterage,nextstation]
-  };
+          if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) > meterage){
+              nextstation = stopTimes[st].station
+              nexttime = stopTimes[st].departs
+              nextmeterage = getMeterageOfStation(stopTimes[st].station)
+              break;
+          }
+      }else{
+        if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) < meterage){
+            nextstation = stopTimes[st].station
+            nexttime = stopTimes[st].departs
+            nextmeterage = getMeterageOfStation(stopTimes[st].station)
+            break;
+        }
+      }}
+        return [nexttime,nextmeterage,nextstation]
+      };
   function getMeterageOfStation(station_id){
     for (sm = 0; sm < StationMeterage.length; sm++){
       if (station_id == StationMeterage[sm].station_id){
@@ -1106,16 +1107,16 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
   function getScheduleVariance(kiwirail,currenttime,service_date,meterage,prevstntime,nextstntime,prevstnmeterage,nextstnmeterage,location_age_seconds){
     if (kiwirail == false && prevstntime !== undefined && nextstntime !== undefined && prevstnmeterage !== undefined){
 
-    var ExpectedTime = getUTCTodayfromTimeDate(prevstntime,service_date) + ((getUTCTodayfromTimeDate(nextstntime,service_date)-getUTCTodayfromTimeDate(prevstntime,service_date)) * ((meterage - prevstnmeterage) / (nextstnmeterage - prevstnmeterage)));
-    //console.log (getUTCTodayfromTimeDate(prevstntime,service_date)+" - "+getUTCTodayfromTimeDate(nextstntime,service_date) + " = " + (getUTCTodayfromTimeDate(prevstntime,service_date)-getUTCTodayfromTimeDate(nextstntime,service_date))/60000);
-    //console.log( (meterage - prevstnmeterage) / (nextstnmeterage - prevstnmeterage) );
-    var CurrentDelay = ((Math.round(((currenttime -43200000) - Math.floor(ExpectedTime))/1000))/60) - (location_age_seconds /60);
-    //console.log(CurrentDelay/60000);
-    //console.log(ExpectedTime +" "+currenttime +" = "+ CurrentDelay);
-    return [CurrentDelay,minTommss(CurrentDelay)]
-  }else{
-    return ["",""]
-  }
+      var ExpectedTime = getUTCTodayfromTimeDate(prevstntime,service_date) + ((getUTCTodayfromTimeDate(nextstntime,service_date)-getUTCTodayfromTimeDate(prevstntime,service_date)) * ((meterage - prevstnmeterage) / (nextstnmeterage - prevstnmeterage)));
+      //console.log (getUTCTodayfromTimeDate(prevstntime,service_date)+" - "+getUTCTodayfromTimeDate(nextstntime,service_date) + " = " + (getUTCTodayfromTimeDate(prevstntime,service_date)-getUTCTodayfromTimeDate(nextstntime,service_date))/60000);
+      //console.log( (meterage - prevstnmeterage) / (nextstnmeterage - prevstnmeterage) );
+      var CurrentDelay = ((Math.round(((currenttime -43200000) - Math.floor(ExpectedTime))/1000))/60) - (location_age_seconds /60);
+      //console.log(CurrentDelay/60000);
+      //console.log(ExpectedTime +" "+currenttime +" = "+ CurrentDelay);
+      return [CurrentDelay,minTommss(CurrentDelay)]
+    }else{
+      return ["",""]
+    }
   };
 
   function minTommss(minutes){
@@ -1124,7 +1125,6 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
    var sec = Math.floor((Math.abs(minutes) * 60) % 60);
    return sign + (min < 10 ? "0" : "") + min + ":" + (sec < 10 ? "0" : "") + sec;
   }
-
   function getUTCTodayfromTimeDate(thistime,thisdate){
     var seconds = parseInt(thistime.split(":")[0])*60*60 + (parseInt(thistime.split(":")[1])*60);
     var now = new Date(thisdate.substring(0,4),(thisdate.substring(4,6)-1),thisdate.substring(6,8));
