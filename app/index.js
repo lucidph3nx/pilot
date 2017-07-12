@@ -1236,6 +1236,14 @@ app.get('/berthing', (request, response) => {
   response.end();
 })
 
+app.post('/busCalc', function(request, response) {
+  var busCalcData = request.body;
+  console.log(busCalcData);
+  response.writeHead(200, {"Content-Type": "application/json"},{cache:false});
+  response.write(JSON.stringify(busCalcData));
+  response.end();
+})
+
 var port = 3000;
 app.listen(port);
 console.log("listening on " + port);

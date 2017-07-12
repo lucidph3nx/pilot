@@ -1,2 +1,33 @@
-<h2>Bus Caclulator</h2>
+<h1>Bus Calculator</h1>
 <p>under construction</p>
+
+<div layout="row">
+<md-content md-whiteframe-"5" flex="25" style="padding:20px;">
+  <h2 class="md-subhead">Enter Start Time:</h2>
+  <mdp-time-picker mdp-auto-switch="true" mdp-ampm="false" mdp-format="HH:mm" ng-model="currentDate"></mdp-time-picker>
+  <p></p>
+  <h2 class="md-subhead">Select Line:</h2>
+  <md-radio-group ng-model="busCalcData.Line" class="md-primary">
+    <md-radio-button value="HVL">HVL</md-radio-button>
+    <md-radio-button value="JVL">JVL</md-radio-button>
+    <md-radio-button value="KPL">KPL</md-radio-button>
+    <md-radio-button value="MEL">MEL</md-radio-button>
+    <md-radio-button value="WRL">WRL</md-radio-button>
+    <!--<md-radio-button value="HVLWRL">HVL+WRL</md-radio-button>-->
+  </md-radio-group>
+  <p></p>
+  <h2 class="md-subhead">Select Station From:</h2>
+  <md-select ng-model="busCalcData.Station1" aria-label="Station 1">
+      <md-option ng-repeat="stat in stationList | filter: { line: busCalcData.Line }" ng-value="stat.station_id">{{stat.station_id}}</md-option>
+  </md-select>
+  <h2 class="md-subhead">Select Station To:</h2>
+  <md-select ng-model="busCalcData.Station2" aria-label="Station 2">
+      <md-option ng-repeat="stat in stationList | filter: { line: busCalcData.Line }" ng-value="stat.station_id">{{stat.station_id}}</md-option>
+  </md-select>
+  <md-button class="md-raised" ng-click="calculateBus();">Calculate</md-button>
+</md-content>
+<md-content md-whiteframe-"5" flex="50" style="padding:20px; margin-left:5px;">
+  RESULTS WILL GO HERE
+  {{busCalcResults}}
+</md-content>
+</div>

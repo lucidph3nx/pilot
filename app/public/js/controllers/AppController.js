@@ -1,4 +1,4 @@
-app.controller('AppController',  ['$scope', 'currentServices', 'berthing', '$interval', '$timeout', '$mdSidenav', function ($scope, currentServices, berthing, $interval, $timeout, $mdSidenav) {
+app.controller('AppController',  ['$scope', 'currentServices', 'berthing', 'stationList', 'busCalcPost', '$interval', '$timeout', '$mdSidenav', '$mdpDatePicker', '$mdpTimePicker', function ($scope, currentServices, berthing, stationList, busCalcPost, $interval, $timeout, $mdSidenav, $mdpDatePicker, $mdpTimePicker) {
 
     var extraseconds
     var initialtime
@@ -82,6 +82,42 @@ app.controller('AppController',  ['$scope', 'currentServices', 'berthing', '$int
         n = n + '';
         return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
       }
+      //mPicker stuff for bus calc
+      $scope.currentDate = new Date();
+  	this.showDatePicker = function(ev) {
+    	$mdpDatePicker($scope.currentDate, {
+        targetEvent: ev
+      }).then(function(selectedDate) {
+        $scope.currentDate = selectedDate;
+      });;
+    };
 
+    this.filterDate = function(date) {
+      return moment(date).date() % 2 == 0;
+    };
+
+    this.showTimePicker = function(ev) {
+    	$mdpTimePicker($scope.currentTime, {
+        targetEvent: ev
+      }).then(function(selectedDate) {
+        $scope.currentTime = selectedDate;
+      });;
+    }
+    //data for bus calc
+    $scope.busCalcData = {
+      Time : $scope.currentTime,
+      Line : 'HVL',
+      Station1 : '',
+      Station2 : ''
+    };
+    $scope.stationList = stationList.stationList;
+
+    $scope.busCalcResults = {};
+
+    $scope.calculateBus = function() {
+      busCalcPost.getCalc($scope.busCalcData).success(function(data,status){
+        $scope.busCalcResults = data;
+      });
+    };
 
 }]);
