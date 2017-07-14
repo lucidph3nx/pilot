@@ -336,6 +336,10 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
   this.TMNextTurnaround = getTurnaroundFrom2Times(this.arrives,this.TMNextServiceTime);
   //pax count estimation
   this.passengerEstimation = getPaxAtStation(this.calendar_id, this.service_id, this.line, this.prevTimedStation, this.direction);
+  if(this.passengerEstimation == "" && this.kiwirail == false){
+    console.log("Pax estimation failed " + this.service_id);
+    console.log(getPrevStnDetails(this.meterage,this.direction,this.service_id))
+  }
   //status message
   //this.statusMessage = getStatusMessage(this.kiwirail,this.linked_unit,this.location_age,this.varianceMinutes,this.NextTurnaround,this.LENextTurnaround,this.TMNextTurnaround,this.laststation,this.laststationcurrent,this.direction,this.line,this.departed,this.destination,this.speed,this.schedule_variance_min,this.origin);
 
@@ -1075,13 +1079,13 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
           prevtime = stopTimes[st].departs
           prevmeterage = getMeterageOfStation(stopTimes[st].station)
         };
-        }else{
+    }else if (direction == "DOWN"){
           if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) > meterage){
               prevstation = stopTimes[st].station
               prevtime = stopTimes[st].departs
               prevmeterage = getMeterageOfStation(stopTimes[st].station)
           }
-        }}
+      }}
         if(prevtime == undefined){
           //console.log(prevstation + " " + service_id)
         }
