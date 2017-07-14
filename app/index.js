@@ -1,10 +1,13 @@
 const path = require('path')
 const express = require('express')
+const request = require('request')
 const app = express()
 const https = require('https');
 const fs = require('fs')
+const qs = require('querystring')
 const StationGeoboundaries = require('./Data/StationGeoboundaries')
 const StationMeterage = require('./Data/StationMeterage')
+const StationLatLon = require('./Data/StationLatLon')
 const lineshapes = require('./Data/lineshapes')
 const masterRoster = require('./Data/masterRoster')
 const dummyCurrentServices = require('./Data/DummyCurrentServices')
@@ -32,7 +35,7 @@ const LocalStrategy = require('passport-local')
 
 //=======express=======
 // Configure Express
-app.use(logger('combined'));
+app.use(logger('tiny'));
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -224,7 +227,7 @@ function readresponse(GeVisJSON){
         };
         //checking if next entry on stopTimes exists and is zero, indicating end of service
         if(st+1 < stopTimes.length){
-          if(stopTimes[st+1].station_sequence == 0){
+          if(stopTimes[st+1] !== undefined && stopTimes[st+1].station_sequence == 0){
             checkarrives = stopTimes[st].arrives
             //then check if already in active services
             if (checkdeparts < CurrentTimeMinus1 && checkarrives > CurrentTimePlus5 ){
@@ -531,7 +534,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
         if (st == stopTimes.length){
           arrives = stopTimes[st].arrives
           break;
-        }else if(stopTimes[st+1].station_sequence == 0){
+        }else if(stopTimes[st+1] !== undefined && stopTimes[st+1].station_sequence == 0){
           arrives = stopTimes[st].arrives
           break;
         };
@@ -587,7 +590,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
       //console.log (ts + " & " + st);
       if (stopTimes[st].service_id == service_id){
         //get start and end time
-        if(stopTimes[st+1].station_sequence == 0){
+        if(stopTimes[st+1] !== undefined && stopTimes[st+1].station_sequence == 0){
           destination = stopTimes[st].station;
           break;
         };
@@ -628,7 +631,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     var NextService;
     for(s = 0; s <unitRoster.length; s++){
       if (unitRoster[s].calendar_id == calendar_id && unitRoster[s].service_id == (service_id)){
-          if(unitRoster[s].journey_id == unitRoster[s+1].journey_id){
+          if(unitRoster[s+1] !== undefined && unitRoster[s].journey_id == unitRoster[s+1].journey_id){
             NextService = unitRoster[s+1].service_id
           } else{
             NextService = ""
@@ -641,7 +644,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     var LastService;
     for(s = 0; s <unitRoster.length; s++){
       if (unitRoster[s].calendar_id == calendar_id && unitRoster[s].service_id == (service_id)){
-          if(unitRoster[s].journey_id == unitRoster[s-1].journey_id){
+          if(unitRoster[s-1] !== undefined && unitRoster[s].journey_id == unitRoster[s-1].journey_id){
             LastService = unitRoster[s-1].service_id
           } else{
             LastService = ""
@@ -654,7 +657,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     var NextService;
     for(s = 0; s <masterRoster.length; s++){
       if (masterRoster[s].calendarId == calendar_id && masterRoster[s].serviceID == (service_id) && masterRoster[s].workType == (work_type)){
-          if(masterRoster[s].shiftId == masterRoster[s+1].shiftId){
+          if(masterRoster[s+1] !== undefined && masterRoster[s].shiftId == masterRoster[s+1].shiftId){
             NextService = masterRoster[s+1].serviceID
           } else{
             NextService = ""
@@ -1045,7 +1048,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
       for (m = 0; m < StationMeterage.length; m++){
         if(StationMeterage[m].KRLine == KRLine){
           if(direction == "UP"){
-            if(StationMeterage[m].meterage >= meterage){
+            if(StationMeterage[m-1] !== undefined && StationMeterage[m].meterage >= meterage){
               laststation = [StationMeterage[m-1].station_id, false];
               break;
             }
@@ -1217,6 +1220,45 @@ function getPaxAtStation(calendar_id, service_id, line, station, direction){
     };
   };
 };
+//bus passenger calculations for calc interface
+function calculateBusPax(time, station1, station2){
+  //console.log(time + " " + station1 + " " + station2);
+  var station1ll = {lat : '', lon : ''};
+  var station2ll = {lat : '', lon : ''};
+  //get lat and long to query gmaps distance matrix
+  for (sll = 0; sll < StationLatLon.length; sll++){
+    if (StationLatLon[sll].station_id == station1){
+      station1ll.lat = StationLatLon[sll].lat;
+      station1ll.lon = StationLatLon[sll].lon;
+    }else if (StationLatLon[sll].station_id == station2){
+      station2ll.lat = StationLatLon[sll].lat;
+      station2ll.lon = StationLatLon[sll].lon;
+    };
+  };
+  var GMapResponse = '';
+  GMapResponse = getGMapDistance(station1ll.lat, station1ll.lon, station2ll.lat, station2ll.lon);
+  while(GMapResponse == ''){
+    //wait???
+  };
+  console.log(GMapResponse);
+  return ""
+};
+
+function getGMapDistance(originlat, originlong, destinationlat, destinationlon){
+  var GMoptions = {
+      origins: originlat + "," + originlong,
+      destinations: destinationlat + "," + destinationlon,
+      mode: 'driving',
+      key: 'AIzaSyBR_gFUCm1tgXrLUKeObS_grVyO3G-Tl24'
+  };
+  var data = '';
+  request("https://maps.googleapis.com/maps/api/distancematrix/json?" + qs.stringify(GMoptions), function (err, res, body){
+    if (!err && res.statusCode == 200){
+      data = JSON.parse(body);
+      return data
+    };
+  })
+};
 
 app.use('/public', express.static(path.join(__dirname, 'public')))
 app.get('/pilot', (request, response) => {
@@ -1238,7 +1280,8 @@ app.get('/berthing', (request, response) => {
 
 app.post('/busCalc', function(request, response) {
   var busCalcData = request.body;
-  console.log(busCalcData);
+  calculateBusPax(busCalcData.Time, busCalcData.Station1, busCalcData.Station2);
+  //console.log(busCalcData);
   response.writeHead(200, {"Content-Type": "application/json"},{cache:false});
   response.write(JSON.stringify(busCalcData));
   response.end();

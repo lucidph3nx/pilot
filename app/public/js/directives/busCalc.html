@@ -3,8 +3,9 @@
 
 <div layout="row">
 <md-content md-whiteframe-"5" flex="25" style="padding:20px;">
+  <form name="calcForm">
   <h2 class="md-subhead">Enter Start Time:</h2>
-  <mdp-time-picker mdp-auto-switch="true" mdp-ampm="false" mdp-format="HH:mm" ng-model="currentDate"></mdp-time-picker>
+  <mdp-time-picker mdp-auto-switch="true" mdp-ampm="false" mdp-format="HH:mm" ng-model="busCalcData.Time"></mdp-time-picker>
   <p></p>
   <h2 class="md-subhead">Select Line:</h2>
   <md-radio-group ng-model="busCalcData.Line" class="md-primary">
@@ -16,18 +17,31 @@
     <!--<md-radio-button value="HVLWRL">HVL+WRL</md-radio-button>-->
   </md-radio-group>
   <p></p>
-  <h2 class="md-subhead">Select Station From:</h2>
-  <md-select ng-model="busCalcData.Station1" aria-label="Station 1">
-      <md-option ng-repeat="stat in stationList | filter: { line: busCalcData.Line }" ng-value="stat.station_id">{{stat.station_id}}</md-option>
-  </md-select>
-  <h2 class="md-subhead">Select Station To:</h2>
-  <md-select ng-model="busCalcData.Station2" aria-label="Station 2">
-      <md-option ng-repeat="stat in stationList | filter: { line: busCalcData.Line }" ng-value="stat.station_id">{{stat.station_id}}</md-option>
-  </md-select>
-  <md-button class="md-raised" ng-click="calculateBus();">Calculate</md-button>
+  <div layout="row">
+    <md-input-container flex="50">
+      <label>Station From</label>
+      <md-select name="STAT1" ng-model="busCalcData.Station1" aria-label="Station 1" required>
+          <md-option ng-repeat="stat in stationList | filter: { line: busCalcData.Line }" ng-value="stat.station_id">{{stat.station_id}}</md-option>
+      </md-select>
+      <div class="errors" ng-messages="busCalcData.STAT1.$error">
+        <div ng-message="required">Required</div>
+      </div>
+      </md-input-container>
+    <md-input-container flex="50">
+      <label>Station To</label>
+      <md-select name="STAT2" ng-model="busCalcData.Station2" aria-label="Station 2" required>
+          <md-option ng-repeat="stat in stationList | filter: { line: busCalcData.Line }" ng-value="stat.station_id">{{stat.station_id}}</md-option>
+      </md-select>
+      <div class="errors" ng-messages="busCalculatorForm.STAT2.$error">
+        <div ng-message="required">Required</div>
+      </div>
+    </md-input-container>
+  </div>
+  <p></p>
+  <md-button class="md-raised" ng-disabled="calcForm.$invalid" ng-click="calculateBus();">Calculate</md-button>
+</form>
 </md-content>
 <md-content md-whiteframe-"5" flex="50" style="padding:20px; margin-left:5px;">
-  RESULTS WILL GO HERE
   {{busCalcResults}}
 </md-content>
 </div>

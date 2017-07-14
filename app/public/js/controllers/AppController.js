@@ -82,42 +82,43 @@ app.controller('AppController',  ['$scope', 'currentServices', 'berthing', 'stat
         n = n + '';
         return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
       }
-      //mPicker stuff for bus calc
-      $scope.currentDate = new Date();
-  	this.showDatePicker = function(ev) {
-    	$mdpDatePicker($scope.currentDate, {
-        targetEvent: ev
-      }).then(function(selectedDate) {
-        $scope.currentDate = selectedDate;
-      });;
-    };
 
-    this.filterDate = function(date) {
-      return moment(date).date() % 2 == 0;
-    };
-
-    this.showTimePicker = function(ev) {
-    	$mdpTimePicker($scope.currentTime, {
-        targetEvent: ev
-      }).then(function(selectedDate) {
-        $scope.currentTime = selectedDate;
-      });;
-    }
     //data for bus calc
     $scope.busCalcData = {
-      Time : $scope.currentTime,
+      Time : new Date(),
       Line : 'HVL',
-      Station1 : '',
-      Station2 : ''
+      Station1 : undefined,
+      Station2 : undefined
     };
     $scope.stationList = stationList.stationList;
 
     $scope.busCalcResults = {};
 
     $scope.calculateBus = function() {
-      busCalcPost.getCalc($scope.busCalcData).success(function(data,status){
-        $scope.busCalcResults = data;
-      });
+        busCalcPost.getCalc($scope.busCalcData).success(function(data,status){
+          $scope.busCalcResults = data;
+        });
     };
+    //mPicker stuff for bus calc
+    //$scope.currentDate = new Date();
+  this.showDatePicker = function(ev) {
+    $mdpDatePicker($scope.busCalcData.Time, {
+      targetEvent: ev
+    }).then(function(selectedDate) {
+      $scope.busCalcData.Time = selectedDate;
+    });;
+  };
+
+  this.filterDate = function(date) {
+    return moment(date).date() % 2 == 0;
+  };
+
+  this.showTimePicker = function(ev) {
+    $mdpTimePicker($scope.busCalcData.Time, {
+      targetEvent: ev
+    }).then(function(selectedDate) {
+      $scope.busCalcData.Time = selectedDate;
+    });;
+  }
 
 }]);
