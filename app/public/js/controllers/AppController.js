@@ -85,34 +85,25 @@ app.controller('AppController',  ['$scope', 'currentServices', 'berthing', 'stat
 
     //data for bus calc
     $scope.busCalcData = {
-      Time : new Date(),
+      Time : new Date(moment()),
       Line : 'HVL',
       Station1 : undefined,
       Station2 : undefined
     };
+    $scope.resetBusCalcTime = function() {
+      $scope.busCalcData.Time = new Date(moment())
+    };
     $scope.stationList = stationList.stationList;
-
     $scope.busCalcResults = {};
-
+    $scope.busCalcResultsVisible = false;
     $scope.calculateBus = function() {
+      //$scope.busCalcData.Time = moment($scope.busCalcData.Time);
         busCalcPost.getCalc($scope.busCalcData).success(function(data,status){
           $scope.busCalcResults = data;
+          $scope.busCalcResultsVisible = true;
         });
     };
     //mPicker stuff for bus calc
-    //$scope.currentDate = new Date();
-  this.showDatePicker = function(ev) {
-    $mdpDatePicker($scope.busCalcData.Time, {
-      targetEvent: ev
-    }).then(function(selectedDate) {
-      $scope.busCalcData.Time = selectedDate;
-    });;
-  };
-
-  this.filterDate = function(date) {
-    return moment(date).date() % 2 == 0;
-  };
-
   this.showTimePicker = function(ev) {
     $mdpTimePicker($scope.busCalcData.Time, {
       targetEvent: ev

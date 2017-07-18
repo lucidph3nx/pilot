@@ -1,10 +1,14 @@
 const path = require('path')
 const express = require('express')
 const request = require('request')
+const rp = require('request-promise')
 const app = express()
 const https = require('https');
 const fs = require('fs')
 const qs = require('querystring')
+//now with added moments
+var moment = require('moment-timezone');
+moment().tz('Pacific/Auckland').format();
 const StationGeoboundaries = require('./Data/StationGeoboundaries')
 const StationMeterage = require('./Data/StationMeterage')
 const StationLatLon = require('./Data/StationLatLon')
@@ -145,16 +149,6 @@ function readresponse(GeVisJSON){
         var schedule_variance = GeVisJSON.features[gj].attributes.DelayTime
         var lat = GeVisJSON.features[gj].attributes.Latitude
         var long = GeVisJSON.features[gj].attributes.Longitude
-
-        //var otherunit
-        //var otherunitlat
-        //var otherunitlong
-
-        //if(GeVisJSON.features[i].attributes.EquipmentDesc == "Matangi Power Car                       "){
-        //  linked_unit
-        //}
-
-
         //new service object
         var service = new Service(service_id,service_date,service_description,linked_unit,speed,compass,location_age,schedule_variance,lat,long);
 
@@ -174,37 +168,10 @@ function readresponse(GeVisJSON){
 		};
 	};
   //get current caledar_id for timetable search
-  var thisdate = new Date();
-  var calendar_id = "";
-  for (e = 0; e < calendarexceptions.length; e++){
-    if (calendarexceptions[e].date == thisdate){
-      calendar_id = calendarexceptions[e].calendar_id;
-      break;
-    };
-  };
-  if (calendar_id == ""){
-    switch(thisdate.getDay()){
-      case 0:
-        calendar_id = "1";
-        break;
-      case 1:
-      case 2:
-      case 3:
-      case 4:
-        calendar_id = "2345";
-        break;
-      case 5:
-        calendar_id = "6";
-        break;
-      case 6:
-        calendar_id = "7";
-        break;
-      default:
-        calendar_id = "";
-    };
-  };
+  var calendar_id = calendarIDfromDate(moment());
   //get all timetabled services that are not active
   var match = false;
+  var thisdate = new Date()
   var compatibleservicedate = thisdate.toJSON().replace('-','').replace('-','').substring(0,8);
 
   var CurrentTimeMinus1 = new Date(CurrentUTC - (1 * 60000) ).toJSON().substring(10,19).replace('T',' ').trim();
@@ -277,7 +244,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
   this.calendar_id = getcalendaridfromservicedate(this.service_date);
   this.line = getlinefromserviceid(this.service_id)[0];
   this.kiwirail = getlinefromserviceid(this.service_id,service_description)[1];
-  this.direction = getdirectionfromserviceid(this.service_id,service_description);
+  this.direction = getdirectionfromserviceid(this.service_id);
   this.KRline = KRlinefromline(this.line);
   this.linked_unit = linked_unit.trim();
   this.cars = getcarsfromtimetable(this.service_id,this.calendar_id);
@@ -1192,9 +1159,11 @@ function getPaxAtStation(calendar_id, service_id, line, station, direction){
   };
 
   //test function
-  //console.log(service_id);
-  //console.log("station count = " + stationCount)
-  //console.log(stoppingArray);
+  if(isNaN(stationCount)){
+    console.log(service_id);
+    console.log("station count = " + stationCount)
+    console.log(stoppingArray);
+  };
 
   stationCount = Number(Math.round(stationCount+'e1')+'e-1');
 
@@ -1220,44 +1189,377 @@ function getPaxAtStation(calendar_id, service_id, line, station, direction){
     };
   };
 };
+
 //bus passenger calculations for calc interface
-function calculateBusPax(time, station1, station2){
-  //console.log(time + " " + station1 + " " + station2);
-  var station1ll = {lat : '', lon : ''};
-  var station2ll = {lat : '', lon : ''};
-  //get lat and long to query gmaps distance matrix
-  for (sll = 0; sll < StationLatLon.length; sll++){
-    if (StationLatLon[sll].station_id == station1){
-      station1ll.lat = StationLatLon[sll].lat;
-      station1ll.lon = StationLatLon[sll].lon;
-    }else if (StationLatLon[sll].station_id == station2){
-      station2ll.lat = StationLatLon[sll].lat;
-      station2ll.lon = StationLatLon[sll].lon;
+function calculateBusPax(time, line, stationA, stationB){
+
+  var Answer = {};
+
+  var timeA = moment(time);
+  var timeB = moment(time).add(1, 'hour');
+  var calendar_id = calendarIDfromDate(timeA);
+  var stationAMeterage
+  var stationBMeterage
+  //get meterage of both stations
+  for (st = 0; st < StationMeterage.length; st++){
+    if (StationMeterage[st].station_id == stationA){
+      stationAMeterage = StationMeterage[st].meterage
+    };
+    if (StationMeterage[st].station_id == stationB){
+      stationBMeterage = StationMeterage[st].meterage
     };
   };
-  var GMapResponse = '';
-  GMapResponse = getGMapDistance(station1ll.lat, station1ll.lon, station2ll.lat, station2ll.lon);
-  while(GMapResponse == ''){
-    //wait???
+  var relevantServicesUpAtA   = getAllRelevantServices(stationA, "UP", timeA, timeB, calendar_id, line);
+  var relevantServicesUpAtB   = getAllRelevantServices(stationB, "UP", timeA, timeB, calendar_id, line);
+  var relevantServicesDownAtA = getAllRelevantServices(stationA, "DOWN", timeA, timeB, calendar_id, line);
+  var relevantServicesDownAtB = getAllRelevantServices(stationB, "DOWN", timeA, timeB, calendar_id, line);
+  //add up total pax for later comparison
+  var SumPaxUpAtA = SumPaxFromRelevantServices(relevantServicesUpAtA);
+  var BusEstimateUpAtA = Math.ceil(SumPaxUpAtA/50)
+  var SumPaxUpAtB = SumPaxFromRelevantServices(relevantServicesUpAtB);
+  var BusEstimateUpAtB = Math.ceil(SumPaxUpAtB/50)
+  var SumPaxDownAtA = SumPaxFromRelevantServices(relevantServicesDownAtA);
+  var BusEstimateDownAtA = Math.ceil(SumPaxDownAtA/50)
+  var SumPaxDownAtB = SumPaxFromRelevantServices(relevantServicesDownAtB);
+  var BusEstimateDownAtB = Math.ceil(SumPaxDownAtB/50)
+  var IndexSumPaxArray = indexOfMax([SumPaxUpAtA, SumPaxDownAtA, SumPaxUpAtB, SumPaxDownAtB]);
+  //get greater of (Pax Up@A, Pax Up@B, Pax Down@A, Pax Down@B)
+  switch(IndexSumPaxArray){
+    case 0:
+      Answer = [{SumPax: SumPaxUpAtA, Buses: BusEstimateUpAtA, Station: stationA, Direction: "UP", services: relevantServicesUpAtA}, {SumPax: SumPaxDownAtB, Buses: BusEstimateDownAtB, Station: stationB, Direction: "DOWN", services: relevantServicesDownAtB}];
+      break;
+    case 1:
+      Answer = [{SumPax: SumPaxDownAtA, Buses: BusEstimateDownAtA, Station: stationA, Direction: "DOWN", services: relevantServicesDownAtA}, {SumPax: SumPaxUpAtB, Buses: BusEstimateUpAtB, Station: stationB, Direction: "UP", services: relevantServicesUpAtB}];
+      break;
+    case 2:
+      Answer = [{SumPax: SumPaxUpAtB, Buses: BusEstimateUpAtB, Station: stationB, Direction: "UP", services: relevantServicesUpAtB}, {SumPax: SumPaxDownAtA, Buses: BusEstimateDownAtA, Station: stationA, Direction: "DOWN", services: relevantServicesDownAtA}];
+      break;
+    case 3:
+      Answer = [{SumPax: SumPaxDownAtB, Buses: BusEstimateDownAtB, Station: stationB, Direction: "DOWN", services: relevantServicesDownAtB}, {SumPax: SumPaxUpAtA, Buses: BusEstimateUpAtA, Station: stationA, Direction: "UP", services: relevantServicesUpAtA}];
+      break;
+    }
+    return Answer
+
+  function indexOfMax(arr) {
+      if (arr.length === 0) {
+          return -1;
+      }
+
+      var max = arr[0];
+      var maxIndex = 0;
+
+      for (var i = 1; i < arr.length; i++) {
+          if (arr[i] > max) {
+              maxIndex = i;
+              max = arr[i];
+          }
+      }
+
+      return maxIndex;
+  }
+
+  function SumPaxFromRelevantServices (relevantServicesObject){
+      var SumPax = 0
+      for (rs=0; rs<relevantServicesObject.length; rs++){
+        if (isNaN(relevantServicesObject[rs].PaxEst) == false){
+          // console.log(relevantServicesObject[rs].service_id);
+          // console.log(relevantServicesObject[rs].PaxEst);
+          SumPax = SumPax + relevantServicesObject[rs].PaxEst;
+        };
+      };
+      // console.log("SUMPAX:");
+      // console.log(SumPax);
+      return SumPax
   };
-  console.log(GMapResponse);
-  return ""
+
+  function getAllRelevantServices(station, direction, starttime, endtime, calendar_id, line){
+    var relevantServices = [];
+     //console.log(station + " " + direction + " " + starttime + " " + endtime + " " + calendar_id);
+    for (rs = 0; rs < stopTimes.length; rs++){
+      if (stopTimes[rs].station == station && TFP2M(stopTimes[rs].arrives) > starttime && TFP2M(stopTimes[rs].arrives) < endtime){
+        if (getdirectionfromserviceid(stopTimes[rs].service_id) == direction){
+          if (GetCalendarIDfromServiceID(stopTimes[rs].service_id) == calendar_id && getlinefromserviceid(stopTimes[rs].service_id)[0] == line){
+          var Service = new RelevantService(stopTimes[rs].service_id,calendar_id, direction, station, stopTimes[rs].arrives)
+          relevantServices.push(Service)
+        }}
+      }
+    }
+    //console.log(relevantServices);
+    // console.log(SumPaxFromRelevantServices(relevantServices));
+    return relevantServices
+  };
+  //relevant service constructor
+  function RelevantService(service_id, calendar_id, direction, station, arrival){
+    this.service_id = service_id.trim();
+    this.line = getlinefromserviceid(this.service_id)[0];
+    this.calendar_id = calendar_id;
+    this.direction = direction;
+    this.station = station;
+    this.arrival = arrival;
+    this.PaxEst = getPaxAtStation(this.calendar_id, this.service_id, this.line, this.station, this.direction);
+
+    if(isNaN(this.PaxEst)){
+    console.log(this.calendar_id + " " + this.service_id + " " + this.line + " " + this.station + " " + this.direction);
+    console.log(this.PaxEst);
+  }
+  };
+
+  function GetCalendarIDfromServiceID(service_id){
+    for(s = 0; s <unitRoster.length; s++){
+      if (unitRoster[s].service_id == service_id){
+        return unitRoster[s].calendar_id
+      }
+    };
+  }
+  function getlinefromserviceid(service_id){
+      var numchar_id = "";
+      var line = [];
+      var freightdetect = false
+      //looks for service id's with a random letter on the end, treat as a 3 digit
+      for (p = 0; p < service_id.length; p++){
+          if (isNaN(service_id[p])){
+            numchar_id = numchar_id + "C"
+          }else{
+            numchar_id = numchar_id + "N"
+          };
+      };
+      if (numchar_id === "NNNC"){
+        service_id = service_id.substring(0,3);
+      }
+
+      if(service_id.length == 4){
+        switch(service_id.substring(0,2)) {
+          case "12":
+            line = ["PNL",true];
+            break;
+          case "16":
+          case "MA":
+            line = ["WRL",false];
+            break;
+          case "26":
+          case "36":
+          case "39":
+          case "46":
+          case "49":
+          case "PT":
+          case "TA":
+          case "TN":
+          case "UH":
+          case "WA":
+            line = ["HVL",false];
+            break;
+          case "56":
+          case "59":
+          case "ML":
+            line = ["MEL",false];
+            break;
+          case "60":
+          case "62":
+          case "63":
+          case "69":
+          case "72":
+          case "79":
+          case "82":
+          case "89":
+          case "PA":
+          case "PM":
+          case "PU":
+          case "PL":
+          case "TW":
+          case "WK":
+            line = ["KPL",false];
+            break;
+          case "92":
+          case "93":
+          case "99":
+          case "JV":
+            line = ["JVL",false];
+            break;
+          default:
+            line = ""
+        };
+      }
+      else if(service_id.length == 3){
+        switch(service_id.substring(0,1)){
+          case "2":
+            line = ["KPL",true];
+            break;
+          case "3":
+            line = ["KPL",true];
+            break;
+          case "5":
+            line = ["KPL",true];
+            break;
+          case "6":
+            line = ["WRL",true];
+            break;
+          case "B":
+            if(freightdetect){
+              line = ["KPL",true];
+            }else{
+              line = ["KPL",false];
+            };
+            break;
+          case "E":
+          if(freightdetect){
+            line = ["KPL",true];
+          }else{
+            line = ["KPL",false];
+          };
+            break;
+          case "F":
+          if(freightdetect){
+            line = ["WRL",true];
+          }else{
+            line = ["WRL",false];
+          };
+            break;
+          default:
+            line = ""
+          };
+      };
+
+      return line;
+  };
+  //console.log(time + " " + station1 + " " + station2);
+  // var gmapsstations = [];
+  // var gmapsstationsstring = "";
+  //
+  // //get lat and long to query gmaps distance matrix
+  // var started = false
+  // var stopped = false
+  // for (sll = 0; sll < StationLatLon.length; sll++){
+  //
+  //   if (started == false && stopped == false && (StationLatLon[sll].station_id == station1 || StationLatLon[sll].station_id == station2)){
+  //     gmapsstations.push(StationLatLon[sll].lat + ", " + StationLatLon[sll].lon);
+  //     started = true
+  //   }else if (started == true && stopped == false && (StationLatLon[sll].station_id == station1 || StationLatLon[sll].station_id == station2)){
+  //     gmapsstations.push(StationLatLon[sll].lat + ", " + StationLatLon[sll].lon);
+  //     stopped = true
+  //   }else if(started == true && stopped == false){
+  //     gmapsstations.push(StationLatLon[sll].lat + ", " + StationLatLon[sll].lon)
+  //   };
+  // };
+  // for (s=0; s < gmapsstations.length; s++){
+  //   gmapsstationsstring = gmapsstationsstring + gmapsstations[s]
+  //   if (s < (gmapsstations.length -1)){
+  //   gmapsstationsstring = gmapsstationsstring  + "|"
+  //   }
+  // };
+  // console.log(gmapsstationsstring);
+  // var GMapOptions = {
+  //     origins: gmapsstationsstring,
+  //     destinations: gmapsstationsstring,
+  //     //traffic_model: 'best_guess',
+  //     //departure_time: time,
+  //     mode: 'driving',
+  //     key: 'AIzaSyBR_gFUCm1tgXrLUKeObS_grVyO3G-Tl24'
+  // };
+  // var rpOptions = {
+  //     method: 'POST',
+  //     uri: ("https://maps.googleapis.com/maps/api/distancematrix/json?" + qs.stringify(GMapOptions)),
+  //     json: true
+  // };
+  // var GMapTravelTime = rp(rpOptions);
+  //
+  //   GMapTravelTime.then(function(response){
+  //     var temp = response;//JSON.parse(response)
+  //     var elements = temp.rows[0].elements;
+  //     console.log(elements); //.rows.elements
+  //   }, function (error){
+  //     console.error("error: ",error)
+  //   });
 };
 
-function getGMapDistance(originlat, originlong, destinationlat, destinationlon){
-  var GMoptions = {
-      origins: originlat + "," + originlong,
-      destinations: destinationlat + "," + destinationlon,
-      mode: 'driving',
-      key: 'AIzaSyBR_gFUCm1tgXrLUKeObS_grVyO3G-Tl24'
+
+function TFP2M(TwentyFourPlusString){
+  //TwentyFourPlusStringToMoment
+  var tomorrow = false
+  var NewHours = parseInt(TwentyFourPlusString.split(":")[0]);
+  if (NewHours >= 24){
+    tomorrow = true
+    NewHours = NewHours - 24
   };
-  var data = '';
-  request("https://maps.googleapis.com/maps/api/distancematrix/json?" + qs.stringify(GMoptions), function (err, res, body){
-    if (!err && res.statusCode == 200){
-      data = JSON.parse(body);
-      return data
+  var thisMoment = moment()
+  if (tomorrow & (moment().hour() < 3)){
+    thisMoment = moment()
+  }else if (tomorrow){
+    thisMoment = moment().add(1, 'day')
+  };
+
+  var NewMinutes = parseInt(TwentyFourPlusString.split(":")[1]);
+  var NewSeconds = parseInt(TwentyFourPlusString.split(":")[2]);
+  thisMoment.set('hour', NewHours);
+  thisMoment.set('minute', NewMinutes);
+  if (isNaN(NewSeconds) == false){  thisMoment.set('second',NewSeconds) };
+  return thisMoment;
+}
+function calendarIDfromDate(DateMoment){
+    //get current caledar_id for timetable search
+    var thisdate = DateMoment
+    var calendar_id = "";
+    for (e = 0; e < calendarexceptions.length; e++){
+      if (moment(calendarexceptions[e].date) == thisdate){
+        calendar_id = calendarexceptions[e].calendar_id;
+        break;
+      };
     };
-  })
+    if (calendar_id == ""){
+      switch(thisdate.weekday()){
+        case 0:
+          calendar_id = "1";
+          break;
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+          calendar_id = "2345";
+          break;
+        case 5:
+          calendar_id = "6";
+          break;
+        case 6:
+          calendar_id = "7";
+          break;
+        default:
+          calendar_id = "";
+      };
+    };
+    return calendar_id
+};
+function getdirectionfromserviceid(service_id){
+    var numchar_id = "";
+    //remove characters for odd even purposes
+    for (p = 0; p < service_id.length; p++){
+        if (isNaN(service_id[p])){
+          numchar_id = numchar_id + "C"
+        }else{
+          numchar_id = numchar_id + "N"
+        };
+    };
+    if (numchar_id === "NNNC"){
+      service_id = service_id.substring(0,3);
+    }
+    if (numchar_id === "CCNN"){
+      service_id = service_id.substring(2,4);
+    }
+    if (numchar_id === "CCN"){
+      service_id = service_id.substring(2,3);
+    }
+    if (numchar_id === "CNN"){
+      service_id = service_id.substring(1,3);
+    }
+    if (numchar_id === "CN"){
+      service_id = service_id.substring(1,2);
+    }
+
+    if(service_id % 2 == 0){
+      return "UP"
+    }else if(service_id % 2 == 1){
+      return "DOWN"
+    }else {
+      return ""
+    }
 };
 
 app.use('/public', express.static(path.join(__dirname, 'public')))
@@ -1280,10 +1582,10 @@ app.get('/berthing', (request, response) => {
 
 app.post('/busCalc', function(request, response) {
   var busCalcData = request.body;
-  calculateBusPax(busCalcData.Time, busCalcData.Station1, busCalcData.Station2);
+  var Answer = calculateBusPax(busCalcData.Time, busCalcData.Line, busCalcData.Station1, busCalcData.Station2);
   //console.log(busCalcData);
   response.writeHead(200, {"Content-Type": "application/json"},{cache:false});
-  response.write(JSON.stringify(busCalcData));
+  response.write(JSON.stringify(Answer));
   response.end();
 })
 

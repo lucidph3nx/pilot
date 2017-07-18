@@ -1,11 +1,12 @@
 <h1>Bus Calculator</h1>
-<p>under construction</p>
+<h3>under construction!!!!!!!!!!!!!!!!!!</h3>
 
 <div layout="row">
 <md-content md-whiteframe-"5" flex="25" style="padding:20px;">
   <form name="calcForm">
   <h2 class="md-subhead">Enter Start Time:</h2>
   <mdp-time-picker mdp-auto-switch="true" mdp-ampm="false" mdp-format="HH:mm" ng-model="busCalcData.Time"></mdp-time-picker>
+  <md-button class="md-raised" ng-click="resetBusCalcTime();">Now</md-button>
   <p></p>
   <h2 class="md-subhead">Select Line:</h2>
   <md-radio-group ng-model="busCalcData.Line" class="md-primary">
@@ -41,7 +42,50 @@
   <md-button class="md-raised" ng-disabled="calcForm.$invalid" ng-click="calculateBus();">Calculate</md-button>
 </form>
 </md-content>
-<md-content md-whiteframe-"5" flex="50" style="padding:20px; margin-left:5px;">
-  {{busCalcResults}}
+<md-content md-whiteframe-"5" flex="75" style="padding:20px; margin-left:5px;" ng-show="busCalcResultsVisible">
+  <div layout="row">
+  <md-content md-whiteframe-"5" flex="50" style="padding:5px;">
+    <h1>{{busCalcResults[0].SumPax}} Passengers, {{busCalcResults[0].Buses}} Buses</h1>
+    <h2>{{busCalcResults[0].Direction}} at {{busCalcResults[0].Station}}</h2>
+    <table id="resultsTable" class="table table-inverse table-hover" style="padding:10px;">
+      <thead id="resultsTableHeader">
+        <tr id="resultsHeaderRow">
+          <th id="trainNumberHeader">Train</th>
+          <th id="timeHeader">Arrival</th>
+          <th id="speedHeader">Pax</th>
+        </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="service in busCalcResults[0].services| orderBy:['arrival']">
+        <td id="trainnumber" class="varianceNormal">{{ service.service_id }}</td>
+        <td id="timeResults" class="varianceNormal">{{ service.arrival }}</td>
+        <td id="speedResults" class="varianceNormal">{{ service.PaxEst }}</td>
+      </tr>
+    </tbody>
+    </table>
+  </md-content>
+  <md-content md-whiteframe-"5" flex="50" style="padding:5px;">
+    <h1>{{busCalcResults[1].SumPax}} Passengers, {{busCalcResults[1].Buses}} Buses</h1>
+    <h2>{{busCalcResults[1].Direction}} at {{busCalcResults[1].Station}}</h2>
+    <table id="resultsTable" class="table table-inverse table-hover" style="padding:10px;">
+      <thead id="resultsTableHeader">
+        <tr id="resultsHeaderRow">
+          <th id="trainNumberHeader">Train</th>
+          <th id="timeHeader">Arrival</th>
+          <th id="speedHeader">Pax</th>
+        </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="service in busCalcResults[1].services| orderBy:['arrival']">
+        <td id="trainnumber" class="varianceNormal">{{ service.service_id }}</td>
+        <td id="timeResults" class="varianceNormal">{{ service.arrival }}</td>
+        <td id="speedResults" class="varianceNormal">{{ service.PaxEst }}</td>
+      </tr>
+    </tbody>
+    </table>
+  </md-content>
+</div>
 </md-content>
 </div>
+
+<div id="footer">All Bus Estimates are for the next hour from the time of calculation. Buses are estimated to be 50 people per bus. Passenger Numbers based upon average values. Use as a guide only.</div>
