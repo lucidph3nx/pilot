@@ -1273,7 +1273,7 @@ function calculateBusPax(time, line, stationA, stationB){
       };
       // console.log("SUMPAX:");
       // console.log(SumPax);
-      return SumPax
+      return Math.round(SumPax);
   };
 
   function getAllRelevantServices(station, direction, starttime, endtime, calendar_id, line){
