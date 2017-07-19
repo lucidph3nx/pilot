@@ -45,8 +45,11 @@
 <md-content md-whiteframe-"5" flex="75" style="padding:20px; margin-left:5px;" ng-show="busCalcResultsVisible">
   <div layout="row">
   <md-content md-whiteframe-"5" flex="50" style="padding:5px;">
+    <h1>{{busCalcResults[0].Direction}}</h1>
     <h1>{{busCalcResults[0].SumPax}} Passengers, {{busCalcResults[0].Buses}} Buses</h1>
-    <h2>{{busCalcResults[0].Direction}} at {{busCalcResults[0].Station}}</h2>
+    <p></p>
+    <h3>Next Services:</h3>
+    <h3>{{busCalcResults[0].Direction}} at {{busCalcResults[0].Station}}</h3>
     <table id="resultsTable" class="table table-inverse table-hover" style="padding:10px;">
       <thead id="resultsTableHeader">
         <tr id="resultsHeaderRow">
@@ -65,8 +68,11 @@
     </table>
   </md-content>
   <md-content md-whiteframe-"5" flex="50" style="padding:5px;">
+    <h1>{{busCalcResults[1].Direction}}</h1>
     <h1>{{busCalcResults[1].SumPax}} Passengers, {{busCalcResults[1].Buses}} Buses</h1>
-    <h2>{{busCalcResults[1].Direction}} at {{busCalcResults[1].Station}}</h2>
+    <p></p>
+    <h3>Next Services:</h3>
+    <h3>{{busCalcResults[1].Direction}} at {{busCalcResults[1].Station}}</h3>
     <table id="resultsTable" class="table table-inverse table-hover" style="padding:10px;">
       <thead id="resultsTableHeader">
         <tr id="resultsHeaderRow">

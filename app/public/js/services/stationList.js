@@ -55,7 +55,8 @@ app.factory('stationList', function(){
       {"station_name":"Woodside", "station_id":"WOOD", "line":"WRL", "lat":-41.06736154, "lon":175.4018978},
       {"station_name":"Matarawa", "station_id":"MATA", "line":"WRL", "lat":-41.04880879, "lon":175.4487361},
       {"station_name":"Carterton", "station_id":"CART", "line":"WRL", "lat":-41.02168247, "lon":175.5233127},
-      {"station_name":"Solway", "station_id":"SOLW", "line":"WRL", "lat":-40.95338889, "lon":175.6255178}
+      {"station_name":"Solway", "station_id":"SOLW", "line":"WRL", "lat":-40.95338889, "lon":175.6255178},
+      {"station_name":"Masterton", "station_id":"MAST", "line":"WRL", "lat":-40.94043328, "lon":175.6547484}
     ]
   }
 })

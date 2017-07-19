@@ -1164,9 +1164,9 @@ function getPaxAtStation(calendar_id, service_id, line, station, direction){
 
   //test function
   if(isNaN(stationCount)){
-    console.log(service_id);
-    console.log("station count = " + stationCount)
-    console.log(stoppingArray);
+    // console.log(service_id);
+    // console.log("station count = " + stationCount)
+    // console.log(stoppingArray);
   };
 
   stationCount = Number(Math.round(stationCount+'e1')+'e-1');
@@ -1230,16 +1230,16 @@ function calculateBusPax(time, line, stationA, stationB){
   //get greater of (Pax Up@A, Pax Up@B, Pax Down@A, Pax Down@B)
   switch(IndexSumPaxArray){
     case 0:
-      Answer = [{SumPax: SumPaxUpAtA, Buses: BusEstimateUpAtA, Station: stationA, Direction: "UP", services: relevantServicesUpAtA}, {SumPax: SumPaxDownAtB, Buses: BusEstimateDownAtB, Station: stationB, Direction: "DOWN", services: relevantServicesDownAtB}];
+      Answer = [{SumPax: SumPaxUpAtA, Buses: BusEstimateUpAtA, Station: stationA, Direction: "UP", services: relevantServicesUpAtA}, {SumPax: SumPaxDownAtA, Buses: BusEstimateDownAtA, Station: stationB, Direction: "DOWN", services: relevantServicesDownAtB}];
       break;
     case 1:
-      Answer = [{SumPax: SumPaxDownAtA, Buses: BusEstimateDownAtA, Station: stationA, Direction: "DOWN", services: relevantServicesDownAtA}, {SumPax: SumPaxUpAtB, Buses: BusEstimateUpAtB, Station: stationB, Direction: "UP", services: relevantServicesUpAtB}];
+      Answer = [{SumPax: SumPaxDownAtA, Buses: BusEstimateDownAtA, Station: stationB, Direction: "DOWN", services: relevantServicesDownAtB}, {SumPax: SumPaxUpAtA, Buses: BusEstimateUpAtA, Station: stationA, Direction: "UP", services: relevantServicesUpAtA}];
       break;
     case 2:
-      Answer = [{SumPax: SumPaxUpAtB, Buses: BusEstimateUpAtB, Station: stationB, Direction: "UP", services: relevantServicesUpAtB}, {SumPax: SumPaxDownAtA, Buses: BusEstimateDownAtA, Station: stationA, Direction: "DOWN", services: relevantServicesDownAtA}];
+      Answer = [{SumPax: SumPaxUpAtB, Buses: BusEstimateUpAtB, Station: stationA, Direction: "UP", services: relevantServicesUpAtA}, {SumPax: SumPaxDownAtB, Buses: BusEstimateDownAtB, Station: stationB, Direction: "DOWN", services: relevantServicesDownAtB}];
       break;
     case 3:
-      Answer = [{SumPax: SumPaxDownAtB, Buses: BusEstimateDownAtB, Station: stationB, Direction: "DOWN", services: relevantServicesDownAtB}, {SumPax: SumPaxUpAtA, Buses: BusEstimateUpAtA, Station: stationA, Direction: "UP", services: relevantServicesUpAtA}];
+      Answer = [{SumPax: SumPaxDownAtB, Buses: BusEstimateDownAtB, Station: stationB, Direction: "DOWN", services: relevantServicesDownAtB}, {SumPax: SumPaxUpAtB, Buses: BusEstimateUpAtB, Station: stationA, Direction: "UP", services: relevantServicesUpAtA}];
       break;
     }
     return Answer
