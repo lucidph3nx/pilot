@@ -76,6 +76,7 @@ var options = {
 
 var GeVisJSON
 var CurrentServices = [];
+var CurrentMoment
 var CurrentTime
 var CurrentUTC
 var CurrentDate
@@ -123,6 +124,11 @@ function getnewgevisjson(){
 
 function readresponse(GeVisJSON){
   CurrentServices = [];
+
+  if(dummydata){
+        CurrentMoment = moment(1497202547000).utc();
+  }else{CurrentMoment = moment();};
+
   //work out current time
   CurrentUTC = (new Date().getTime() + 43200000); //+12 timezone
   if(dummydata){CurrentUTC = dummytime};
@@ -168,7 +174,7 @@ function readresponse(GeVisJSON){
 		};
 	};
   //get current caledar_id for timetable search
-  var calendar_id = calendarIDfromDate(moment());
+  var calendar_id = calendarIDfromDate(CurrentMoment);
   //get all timetabled services that are not active
   var match = false;
   var thisdate = new Date()
@@ -189,15 +195,15 @@ function readresponse(GeVisJSON){
       if (tripSheet[ts].service_id == stopTimes[st].service_id){
         //get start and end time
         if(stopTimes[st].station_sequence == 0){
-          checkdeparts = stopTimes[st].departs
+          checkdeparts = TFP2M(stopTimes[st].departs)
           checkarrives = ""
         };
         //checking if next entry on stopTimes exists and is zero, indicating end of service
         if(st+1 < stopTimes.length){
           if(stopTimes[st+1] !== undefined && stopTimes[st+1].station_sequence == 0){
-            checkarrives = stopTimes[st].arrives
+            checkarrives = TFP2M(stopTimes[st].arrives)
             //then check if already in active services
-            if (checkdeparts < CurrentTimeMinus1 && checkarrives > CurrentTimePlus5 ){
+            if (checkdeparts < moment(CurrentMoment).subtract(1, 'minutes') && checkarrives > moment(CurrentMoment).add(5, 'minutes')){
 
               match = false
               //then check if already in active services
@@ -237,11 +243,11 @@ function readresponse(GeVisJSON){
 
 //service constructor
 function Service(service_id,service_date,service_description,linked_unit,speed,compass,location_age,schedule_variance,lat,long){
-  this.currenttime = CurrentUTC
+  this.currenttime = CurrentMoment
   this.service_id = service_id.trim();
   this.service_description = service_description.trim();
-  this.service_date = service_date.trim();
-  this.calendar_id = getcalendaridfromservicedate(this.service_date);
+  this.service_date = moment(service_date.trim());
+  this.calendar_id = calendarIDfromDate(this.service_date);
   this.line = getlinefromserviceid(this.service_id)[0];
   this.kiwirail = getlinefromserviceid(this.service_id,service_description)[1];
   this.direction = getdirectionfromserviceid(this.service_id);
@@ -256,9 +262,11 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
   this.location_age = location_age;
   this.location_age_seconds = parseInt(location_age.split(":")[0]*60) + parseInt(location_age.split(":")[1]);
   this.varianceMinutes = gevisvariancefix(schedule_variance);
-  this.departs = getdepartsfromtimetable(this.service_id,this.calendar_id);
-  this.departed = getdepartedornot(CurrentTime,this.departs);
-  this.arrives = getarrivesfromtimetable(this.service_id,this.calendar_id);
+  this.departs = getdepartsfromtimetable(this.service_date,this.service_id,this.calendar_id);
+  if (this.departs == ""){this.departsString = ""}else{ this.departsString = moment(this.departs).format("HH:mm")};
+  this.departed = getdepartedornot(this.currenttime,this.departs);
+  this.arrives = getarrivesfromtimetable(this.service_date,this.service_id,this.calendar_id);
+  if (this.arrives == ""){this.arrivesString = ""}else{ this.arrivesString = moment(this.arrives).format("HH:mm")};
   this.origin = getorigin(this.service_id,this.service_description,this.kiwirail,this.calendar_id);
   this.destination = getdestination(this.service_id,this.service_description,this.kiwirail,this.calendar_id);
   this.lat = lat;
@@ -267,11 +275,11 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
   this.laststation = getlaststation(this.lat,this.long,this.meterage,this.KRline,this.direction)[0]
   this.laststationcurrent = getlaststation(this.lat,this.long,this.meterage,this.KRline,this.direction)[1]
   //variables needed to calculate own delay
-  this.prevTimedStation = getPrevStnDetails(this.meterage,this.direction,this.service_id)[2]
-  this.prevstntime = getPrevStnDetails(this.meterage,this.direction,this.service_id)[0]
-  this.nextstntime = getNextStnDetails(this.meterage,this.direction,this.service_id)[0]
-  this.prevstnmeterage = getPrevStnDetails(this.meterage,this.direction,this.service_id)[1]
-  this.nextstnmeterage = getNextStnDetails(this.meterage,this.direction,this.service_id)[1]
+  this.prevTimedStation = getPrevStnDetails(this.service_date,this.meterage,this.direction,this.service_id)[2]
+  this.prevstntime = getPrevStnDetails(this.service_date,this.meterage,this.direction,this.service_id)[0]
+  this.nextstntime = getNextStnDetails(this.service_date,this.meterage,this.direction,this.service_id)[0]
+  this.prevstnmeterage = getPrevStnDetails(this.service_date,this.meterage,this.direction,this.service_id)[1]
+  this.nextstnmeterage = getNextStnDetails(this.service_date,this.meterage,this.direction,this.service_id)[1]
   //allow for posibility of future fine grained delay calculations
   if(dummydata){
     this.schedule_variance = this.varianceMinutes
@@ -292,14 +300,14 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
   this.LastService = getUnitLastService(this.service_id,this.calendar_id);
   //next service details
   this.NextService = getUnitNextService(this.service_id,this.calendar_id);
-  this.NextTime = getdepartsfromtimetable(this.NextService,this.calendar_id);
+  this.NextTime = getdepartsfromtimetable(this.service_date,this.NextService,this.calendar_id);
   this.NextTurnaround = getTurnaroundFrom2Times(this.arrives,this.NextTime);
   //staff next service details
   this.LENextService = getStaffNextService(this.service_id,this.calendar_id,"LE");
-  this.LENextServiceTime = getdepartsfromtimetable(this.LENextService,this.calendar_id);
+  this.LENextServiceTime = getdepartsfromtimetable(this.service_date,this.LENextService,this.calendar_id);
   this.LENextTurnaround = getTurnaroundFrom2Times(this.arrives,this.LENextServiceTime);
   this.TMNextService = getStaffNextService(this.service_id,this.calendar_id,"TM");
-  this.TMNextServiceTime = getdepartsfromtimetable(this.TMNextService,this.calendar_id);
+  this.TMNextServiceTime = getdepartsfromtimetable(this.service_date,this.TMNextService,this.calendar_id);
   this.TMNextTurnaround = getTurnaroundFrom2Times(this.arrives,this.TMNextServiceTime);
   //pax count estimation
   this.passengerEstimation = getPaxAtStation(this.calendar_id, this.service_id, this.line, this.prevTimedStation, this.direction);
@@ -472,14 +480,15 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     return journey;
     };
   };
-  function getdepartsfromtimetable(service_id,calendar_id){
+  function getdepartsfromtimetable(service_date,service_id,calendar_id){
     var departs
     for(st = 0; st < stopTimes.length; st++){
       //console.log (ts + " & " + st);
       if (service_id == stopTimes[st].service_id){
         //get start and end time
         if(stopTimes[st].station_sequence == 0){
-          departs = stopTimes[st].departs
+          departs = TFP2M(stopTimes[st].departs)
+          departs.set({'year': service_date.year(), 'month': service_date.month(), 'day': service_date.day()});
           break;
         };
       }};
@@ -496,17 +505,18 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
       return false
     }
   }
-  function getarrivesfromtimetable(service_id,calendar_id){
+  function getarrivesfromtimetable(service_date,service_id,calendar_id){
     var arrives
     for(st = 0; st < stopTimes.length; st++){
       //console.log (ts + " & " + st);
       if (service_id == stopTimes[st].service_id){
         //get start and end time
         if (st == stopTimes.length){
-          arrives = stopTimes[st].arrives
+          arrives = TFP2M(stopTimes[st].arrives)
           break;
         }else if(stopTimes[st+1] !== undefined && stopTimes[st+1].station_sequence == 0){
-          arrives = stopTimes[st].arrives
+          arrives = TFP2M(stopTimes[st].arrives)
+          arrives.set({'year': service_date.year(), 'month': service_date.month(), 'day': service_date.day()});
           break;
         };
       }};
@@ -638,17 +648,13 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     return NextService;
   };
   function getTurnaroundFrom2Times(EndTime,StartTime){
-    var time1 = new Date()
-    time1.setHours(EndTime.split(":")[0])
-    time1.setMinutes(EndTime.split(":")[1])
-    var time2 = new Date()
-    time2.setHours(StartTime.split(":")[0])
-    time2.setMinutes(StartTime.split(":")[1])
-    var Turnaround = Math.round((time2 - time1)/1000/60);
-    if (typeof Turnaround == "undefined"){
+    if (EndTime == "" || StartTime == ""){return ""}
+    var Turnaround = moment.duration(StartTime.diff(EndTime));
+    if (Turnaround == NaN){
       Turnaround = "";
     };
-    return Turnaround;
+
+    return Math.floor(Turnaround);
   }
   //logical functions
   function getcalendaridfromservicedate(service_date){
@@ -1035,7 +1041,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
     };
     return laststation
     };
-  function getPrevStnDetails(meterage,direction,service_id){
+  function getPrevStnDetails(service_date, meterage,direction,service_id){
     var prevstation
     var prevtime
     var prevmeterage
@@ -1043,13 +1049,13 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
       if (direction == "UP"){
         if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) < meterage){
           prevstation = stopTimes[st].station
-          prevtime = stopTimes[st].departs
+          prevtime = TFP2M(stopTimes[st].departs)
           prevmeterage = getMeterageOfStation(stopTimes[st].station)
         };
     }else if (direction == "DOWN"){
           if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) > meterage){
               prevstation = stopTimes[st].station
-              prevtime = stopTimes[st].departs
+              prevtime = TFP2M(stopTimes[st].departs)
               prevmeterage = getMeterageOfStation(stopTimes[st].station)
           }
       }}
@@ -1058,7 +1064,7 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
         }
           return [prevtime,prevmeterage,prevstation]
         };
-  function getNextStnDetails(meterage,direction,service_id){
+  function getNextStnDetails(service_date, meterage,direction,service_id){
     var nextstation
     var nexttime
     var nextmeterage
@@ -1066,14 +1072,14 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
       if (direction == "UP"){
           if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) > meterage){
               nextstation = stopTimes[st].station
-              nexttime = stopTimes[st].departs
+              nexttime = TFP2M(stopTimes[st].departs)
               nextmeterage = getMeterageOfStation(stopTimes[st].station)
               break;
           }
       }else{
         if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) < meterage){
             nextstation = stopTimes[st].station
-            nexttime = stopTimes[st].departs
+            nexttime = TFP2M(stopTimes[st].departs)
             nextmeterage = getMeterageOfStation(stopTimes[st].station)
             break;
         }
@@ -1089,13 +1095,17 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
 
   function getScheduleVariance(kiwirail,currenttime,service_date,meterage,prevstntime,nextstntime,prevstnmeterage,nextstnmeterage,location_age_seconds){
     if (kiwirail == false && prevstntime !== undefined && nextstntime !== undefined && prevstnmeterage !== undefined){
+      //var ExpectedTime = getUTCTodayfromTimeDate(prevstntime,service_date) + ((getUTCTodayfromTimeDate(nextstntime,service_date)-getUTCTodayfromTimeDate(prevstntime,service_date)) * ((meterage - prevstnmeterage) / (nextstnmeterage - prevstnmeterage)));
+      // console.log("currenttime time = ");
+      // console.log(currenttime);
 
-      var ExpectedTime = getUTCTodayfromTimeDate(prevstntime,service_date) + ((getUTCTodayfromTimeDate(nextstntime,service_date)-getUTCTodayfromTimeDate(prevstntime,service_date)) * ((meterage - prevstnmeterage) / (nextstnmeterage - prevstnmeterage)));
-      //console.log (getUTCTodayfromTimeDate(prevstntime,service_date)+" - "+getUTCTodayfromTimeDate(nextstntime,service_date) + " = " + (getUTCTodayfromTimeDate(prevstntime,service_date)-getUTCTodayfromTimeDate(nextstntime,service_date))/60000);
-      //console.log( (meterage - prevstnmeterage) / (nextstnmeterage - prevstnmeterage) );
-      var CurrentDelay = ((Math.round(((currenttime -43200000) - Math.floor(ExpectedTime))/1000))/60) - (location_age_seconds /60);
-      //console.log(CurrentDelay/60000);
-      //console.log(ExpectedTime +" "+currenttime +" = "+ CurrentDelay);
+      var ExpectedTime = moment(prevstntime + (nextstntime-prevstntime) * ((meterage - prevstnmeterage) / (nextstnmeterage - prevstnmeterage)));
+      //var CurrentDelay = ((Math.round(((currenttime -43200000) - Math.floor(ExpectedTime))/1000))/60) - (location_age_seconds /60);
+
+      var CurrentDelay = moment(currenttime.diff(ExpectedTime) - (location_age_seconds /60));
+
+      CurrentDelay = (CurrentDelay /60000);
+
       return [CurrentDelay,minTommss(CurrentDelay)]
     }else{
       return ["",""]
@@ -1278,11 +1288,11 @@ function calculateBusPax(time, line, stationA, stationB){
 
   function getAllRelevantServices(station, direction, starttime, endtime, calendar_id, line){
     var relevantServices = [];
-     //console.log(station + " " + direction + " " + starttime + " " + endtime + " " + calendar_id);
+     //console.log(station + " " + direction + " " + moment(starttime).format("HH:mm") + " " + moment(endtime).format("HH:mm") + " " + calendar_id);
     for (rs = 0; rs < stopTimes.length; rs++){
       if (stopTimes[rs].station == station && TFP2M(stopTimes[rs].arrives) > starttime && TFP2M(stopTimes[rs].arrives) < endtime){
         if (getdirectionfromserviceid(stopTimes[rs].service_id) == direction){
-          if (GetCalendarIDfromServiceID(stopTimes[rs].service_id) == calendar_id && getlinefromserviceid(stopTimes[rs].service_id)[0] == line){
+          if (CalendarServiceIDMatch(stopTimes[rs].service_id,calendar_id) && getlinefromserviceid(stopTimes[rs].service_id)[0] == line){
           var Service = new RelevantService(stopTimes[rs].service_id,calendar_id, direction, station, stopTimes[rs].arrives)
           relevantServices.push(Service)
         }}
@@ -1308,12 +1318,15 @@ function calculateBusPax(time, line, stationA, stationB){
   }
   };
 
-  function GetCalendarIDfromServiceID(service_id){
+  function CalendarServiceIDMatch(service_id,calendar_id){
+    var match = false;
     for(s = 0; s <unitRoster.length; s++){
-      if (unitRoster[s].service_id == service_id){
-        return unitRoster[s].calendar_id
+      if (unitRoster[s].service_id == service_id && unitRoster[s].calendar_id == calendar_id){
+        match = true;
+        break;
       }
     };
+    return match
   }
   function getlinefromserviceid(service_id){
       var numchar_id = "";
@@ -1495,7 +1508,10 @@ function TFP2M(TwentyFourPlusString){
   var NewSeconds = parseInt(TwentyFourPlusString.split(":")[2]);
   thisMoment.set('hour', NewHours);
   thisMoment.set('minute', NewMinutes);
-  if (isNaN(NewSeconds) == false){  thisMoment.set('second',NewSeconds) };
+  if (isNaN(NewSeconds) == false){  thisMoment.set('second',NewSeconds) }
+  else{thisMoment.set('seconds', 0);
+      thisMoment.set('miliseconds', 0)
+    };
   return thisMoment;
 }
 function calendarIDfromDate(DateMoment){
