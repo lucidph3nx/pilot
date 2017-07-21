@@ -301,13 +301,16 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
   //next service details
   this.NextService = getUnitNextService(this.service_id,this.calendar_id);
   this.NextTime = getdepartsfromtimetable(this.service_date,this.NextService,this.calendar_id);
+  if(this.NextTime == ""){this.NextTimeString = ""}else{this.NextTimeString = moment(this.NextTime).format("HH:mm")};
   this.NextTurnaround = getTurnaroundFrom2Times(this.arrives,this.NextTime);
   //staff next service details
   this.LENextService = getStaffNextService(this.service_id,this.calendar_id,"LE");
   this.LENextServiceTime = getdepartsfromtimetable(this.service_date,this.LENextService,this.calendar_id);
+  if(this.LENextServiceTime == ""){this.LENextServiceTimeString = ""}else{this.LENextServiceTimeString = moment(this.LENextServiceTime).format("HH:mm")};
   this.LENextTurnaround = getTurnaroundFrom2Times(this.arrives,this.LENextServiceTime);
   this.TMNextService = getStaffNextService(this.service_id,this.calendar_id,"TM");
   this.TMNextServiceTime = getdepartsfromtimetable(this.service_date,this.TMNextService,this.calendar_id);
+  if(this.TMNextServiceTime == ""){this.TMNextServiceTimeString = ""}else{this.TMNextServiceTimeString = moment(this.TMNextServiceTime).format("HH:mm")};
   this.TMNextTurnaround = getTurnaroundFrom2Times(this.arrives,this.TMNextServiceTime);
   //pax count estimation
   this.passengerEstimation = getPaxAtStation(this.calendar_id, this.service_id, this.line, this.prevTimedStation, this.direction);
