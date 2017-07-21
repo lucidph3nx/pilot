@@ -384,10 +384,10 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
         stopProcessing = true;
       };
       //look at linking issues
-      if(this.location_age_seconds >=180){
+      if(this.location_age_seconds >=180 && this.kiwirail == false){
           TempStatus = "";
         // identify tunnel tracking issues and provide alternative status message
-        if(this.direction == "UP" && this.laststation == "MAYM" && (this.location_age_seconds < 900)){
+        if(this.direction == "UP" && this.laststation == "MAYM" && (this.location_age_seconds < 900) ){
           TempStatus = "In Rimutaka Tunnel";
           StatusArray[1] = TempStatus;
         }else if (this.direction == "UP" && this.laststation == "UPPE" && (this.location_age_seconds < 900)) {
@@ -1101,11 +1101,21 @@ function Service(service_id,service_date,service_description,linked_unit,speed,c
 
       var ExpectedTime = moment(prevstntime + (nextstntime-prevstntime) * ((meterage - prevstnmeterage) / (nextstnmeterage - prevstnmeterage)));
       //var CurrentDelay = ((Math.round(((currenttime -43200000) - Math.floor(ExpectedTime))/1000))/60) - (location_age_seconds /60);
+      // console.log("expected time:");
+      // console.log(ExpectedTime);
+      // console.log("current time:");
+      // console.log(currenttime);
+      // console.log("location age (seconds):");
+      // console.log(location_age_seconds);
+      // console.log("diff = ")
+      // console.log(moment(currenttime.diff(ExpectedTime)));
+      // console.log("after location age taken off = ");
 
-      var CurrentDelay = moment(currenttime.diff(ExpectedTime) - (location_age_seconds /60));
-
+      var CurrentDelay = moment(currenttime.diff(ExpectedTime));
+      CurrentDelay.subtract(location_age_seconds, 'seconds')
+      //console.log(CurrentDelay);
       CurrentDelay = (CurrentDelay /60000);
-
+      //console.log(CurrentDelay);
       return [CurrentDelay,minTommss(CurrentDelay)]
     }else{
       return ["",""]
