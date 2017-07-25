@@ -6,7 +6,7 @@ app.controller('AppController',  ['$scope', 'currentServices', 'berthing', 'stat
     //initialise
       currentServices.async().then(function(d) {
         initialtime = d.data.Time
-        $scope.time = new Date(initialtime).toJSON().substring(10,19).replace('T',' ').trim();
+        $scope.time = moment(initialtime).format("HH:mm:ss")
         $scope.currentServices = d.data.CurrentServices;
         extraseconds = 0
       });
@@ -17,7 +17,7 @@ app.controller('AppController',  ['$scope', 'currentServices', 'berthing', 'stat
       $interval(function () {
           currentServices.async().then(function(d) {
             initialtime = d.data.Time
-            $scope.time = new Date(initialtime).toJSON().substring(10,19).replace('T',' ').trim();
+            $scope.time = moment(initialtime).format("HH:mm:ss")
             $scope.currentServices = d.data.CurrentServices;
             extraseconds = 0
           });
@@ -26,15 +26,15 @@ app.controller('AppController',  ['$scope', 'currentServices', 'berthing', 'stat
       $interval(function () {
           extraseconds = extraseconds + 1
           if (extraseconds < 60 ){
-          $scope.time = new Date(initialtime + (extraseconds * 1000)).toJSON().substring(10,19).replace('T',' ').trim();
+          $scope.time = moment(initialtime).add(extraseconds, 'seconds').format("HH:mm:ss");
         }else{
-          $scope.time = "Connection Error - Last Update: " + new Date(initialtime).toJSON().substring(10,19).replace('T',' ').trim();
+          $scope.time = "Connection Error - Last Update: " + moment(initialtime).format("HH:mm:ss");
         }
         //itterate through all CurrentServices and add the extra seconds on
-        for (service in  $scope.currentServices){
+        for (service in $scope.currentServices){
           $scope.currentServices[service].location_age_seconds =  $scope.currentServices[service].location_age_seconds + 1
           $scope.currentServices[service].location_age = pad((Math.floor($scope.currentServices[service].location_age_seconds / 60)),2) + ":" + pad(($scope.currentServices[service].location_age_seconds % 60),2)
-        }
+        };
 
       }, 1000);
 

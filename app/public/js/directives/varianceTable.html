@@ -42,7 +42,7 @@
             <td id="vehicleIDResults" class="varianceNormal" ng-class="{
                                                                     'nolink' : service.statusMessage == 'No Linked Unit',
                                                                   }">{{ service.linked_unit }}</td>-->
-            <td id="timeResults" class="varianceNormal">{{ service.departsString }}</td>
+            <td id="timeResults" class="varianceNormal">{{ service.departs }}</td>
             <!--<td id="stationResults" class="varianceNormal">{{ service.origin }}</td>-->
             <td id="varianceResults" class="columncenter" ng-class="{
                                                                       'early' : service.statusArray[0] == 'Running Early',
@@ -63,7 +63,7 @@
                                             'linkingissue' : service.statusArray[1] == 'Check OMS Linking',
                                             'intunnel' : service.statusArray[1] == 'In Rimutaka Tunnel' || service.statusArray[1] == 'In Tawa Tunnel' || service.statusArray[1] == 'In Tunnel 1' || service.statusArray[1] == 'In Tunnel 2',
                                             }">{{ service.location_age }}</td>
-            <td id="timeResults" class="varianceNormal">{{ service.arrivesString }}</td>
+            <td id="timeResults" class="varianceNormal">{{ service.arrives }}</td>
             <!--<td id="stationResults" class="varianceNormal">{{ service.destination }}</td>-->
             <td id="statusMessage" ng-class="{
                                                 'early' : service.statusMessage == 'Running Early',

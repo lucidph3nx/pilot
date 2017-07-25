@@ -8,7 +8,7 @@
         </md-toolbar>
         <table class="servicedetailtable">
           <tr><td>Schedule Variation</td><td>{{ service.schedule_variance }}</td></tr>
-          <tr><td>Kiwirail Variation</td><td>{{ service.varianceMinutes }}</td></tr>
+          <tr><td>Kiwirail Variation</td><td>{{ service.varianceKiwirail }}</td></tr>
           <tr><td>Unit ID</td><td>{{ service.linked_unit }}</td></tr>
           <tr><td>Cars</td><td>{{ service.cars }}</td></tr>
           <tr><td>Origin</td><td>{{ service.origin }}</td></tr>
@@ -26,19 +26,19 @@
         <h4>Unit</h4>
         <table class="servicedetailtable">
           <tr><td>Next Service</td><td>{{ service.NextService }}</td></tr>
-          <tr><td>Next Time</td><td>{{ service.NextTimeString }}</td></tr>
+          <tr><td>Next Time</td><td>{{ service.NextTime }}</td></tr>
         </table>
         <p></p>
         <h4>Locomotive Engineer</h4>
         <table class="servicedetailtable">
           <tr><td>Next Service</td><td>{{ service.LENextService }}</td></tr>
-          <tr><td>Next Time</td><td>{{ service.LENextServiceTimeString }}</td></tr>
+          <tr><td>Next Time</td><td>{{ service.LENextServiceTime }}</td></tr>
         </table>
         <p></p>
         <h4>Train Manager</h4>
         <table class="servicedetailtable">
           <tr><td>Next Service</td><td>{{ service.TMNextService }}</td></tr>
-          <tr><td>Next Time</td><td>{{ service.TMNextServiceTimeString }}</td></tr>
+          <tr><td>Next Time</td><td>{{ service.TMNextServiceTime }}</td></tr>
         </table>
       </div>
     </md-sidenav>
