@@ -23,7 +23,7 @@ var dummytime = require('../Functions/debugMode')[1]
 
 //service constructor Object, represents a single rail service
 module.exports = function Service(CurrentMoment,service_id,service_date,service_description,linked_unit,second_unit,second_unit_lat,second_unit_long,speed,compass,location_age,schedule_variance,lat,long){
-  this.currenttime = moment(CurrentMoment);
+  this.currenttime = CurrentMoment;
   this.service_id = service_id.trim();
   this.service_description = service_description.trim();
   this.service_date = moment(service_date.trim(), "YYYYMMDD");

@@ -168,6 +168,7 @@ function readresponse(GeVisJSON){
         var schedule_variance = GeVisJSON.features[gj].attributes.DelayTime
         var lat = GeVisJSON.features[gj].attributes.Latitude
         var long = GeVisJSON.features[gj].attributes.Longitude
+
         //new service object
         var service = new Service(CurrentMoment,service_id,service_date,service_description,linked_unit,second_unit,second_unit_lat,second_unit_long,speed,compass,location_age,schedule_variance,lat,long);
 
@@ -223,7 +224,7 @@ function readresponse(GeVisJSON){
                   match = true;
               };};
                 if (match == false){
-                  var service = new Service(tripSheet[ts].service_id,compatibleservicedate,"FROM TIMETABLE","","","","00:00",0,"","");
+                  var service = new Service(CurrentMoment,tripSheet[ts].service_id,compatibleservicedate,"FROM TIMETABLE","","","","00:00",0,"","");
                   for (csa = 0; csa < CurrentServices.length; csa++){
                     if (CurrentServices[csa].service_id == service.LastService){
                       service.statusMessage = "Previous Service Delayed"
