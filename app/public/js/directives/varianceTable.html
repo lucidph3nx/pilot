@@ -29,7 +29,7 @@
                                                   'verylate' : service.statusMessage == 'Running Very Late',
                                                   'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
                                                   'awaitingdeparture': service.statusMessage == 'Awaiting Departure',
-                                                  'linkingissue' : service.statusMessage == 'Check OMS Linking',
+                                                  'linkingissue' : service.statusMessage == 'Check OMS Linking' || service.statusMessage == 'GPS Fault',
                                                   'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
                                                   'nolink' : service.statusMessage == 'No Linked Unit',
                                                   'stoppedbetweenstations' : service.statusMessage == 'Stopped between stations',
@@ -55,12 +55,12 @@
                                                 'currentstation' : service.laststationcurrent == true,
                                                 }">{{ service.laststation }}</td>
             <td id="speedResults" class="columnright varianceNormal" ng-class="{
-                                                'linkingissue' : service.statusArray[1] == 'Check OMS Linking',
+                                                'linkingissue' : service.statusMessage == 'Check OMS Linking' || service.statusMessage == 'GPS Fault',
                                                 'stoppedbetweenstations' : service.statusArray[2] == 'Stopped between stations',
                                                 'storageroad' : service.statusArray[2] == 'In Storage Road' || service.statusArray[2] == 'In Turn Back Road',
                                                 }">{{ service.speed }}</td>
             <td id="timeResults" ng-class="{
-                                            'linkingissue' : service.statusArray[1] == 'Check OMS Linking',
+                                            'linkingissue' : service.statusMessage == 'Check OMS Linking' || service.statusMessage == 'GPS Fault',
                                             'intunnel' : service.statusArray[1] == 'In Rimutaka Tunnel' || service.statusArray[1] == 'In Tawa Tunnel' || service.statusArray[1] == 'In Tunnel 1' || service.statusArray[1] == 'In Tunnel 2',
                                             }">{{ service.location_age }}</td>
             <td id="timeResults" class="varianceNormal">{{ service.arrives }}</td>
