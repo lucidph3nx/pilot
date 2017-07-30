@@ -97,10 +97,6 @@ module.exports = function Service(CurrentMoment,service_id,service_date,service_
   this.TMNextTurnaround = getTurnaroundFrom2Times(this.arrives,this.TMNextServiceTime);
   //pax count estimation
   this.passengerEstimation = getPaxAtStation(this.calendar_id, this.service_id, this.line, this.prevTimedStation, this.direction);
-  if(this.passengerEstimation == "" && this.kiwirail == false){
-    console.log("Pax estimation failed " + this.service_id);
-    console.log(getPrevStnDetails(this.meterage,this.direction,this.service_id))
-  }
   //generate Status Messages (used to be own method, but needed too many variables)
       var lowestTurnaround;
       var TurnaroundLabel;
@@ -316,9 +312,9 @@ module.exports = function Service(CurrentMoment,service_id,service_date,service_
     var departs
     for(st = 0; st < stopTimes.length; st++){
       //console.log (ts + " & " + st);
-      if (service_id == stopTimes[st].service_id){
+      if (service_id == stopTimes[st].serviceId){
         //get start and end time
-        if(stopTimes[st].station_sequence == 0){
+        if(stopTimes[st].stationSequence == 0){
           departs = TFP2M(stopTimes[st].departs)
           departs.set({'year': service_date.year(), 'month': service_date.month(), 'day': service_date.day()});
           break;
@@ -341,12 +337,12 @@ module.exports = function Service(CurrentMoment,service_id,service_date,service_
     var arrives
     for(st = 0; st < stopTimes.length; st++){
       //console.log (ts + " & " + st);
-      if (service_id == stopTimes[st].service_id){
+      if (service_id == stopTimes[st].serviceId){
         //get start and end time
         if (st == stopTimes.length){
           arrives = TFP2M(stopTimes[st].arrives)
           break;
-        }else if(stopTimes[st+1] !== undefined && stopTimes[st+1].station_sequence == 0){
+        }else if(stopTimes[st+1] !== undefined && stopTimes[st+1].stationSequence == 0){
           arrives = TFP2M(stopTimes[st].arrives)
           arrives.set({'year': service_date.year(), 'month': service_date.month(), 'day': service_date.day()});
           break;
@@ -362,9 +358,9 @@ module.exports = function Service(CurrentMoment,service_id,service_date,service_
     var origin
     for(st = 0; st < stopTimes.length; st++){
       //console.log (ts + " & " + st);
-      if (service_id == stopTimes[st].service_id){
+      if (service_id == stopTimes[st].serviceId){
         //get start and end time
-        if(stopTimes[st].station_sequence == 0){
+        if(stopTimes[st].stationSequence == 0){
           origin = stopTimes[st].station
           break;
         };
@@ -401,9 +397,9 @@ module.exports = function Service(CurrentMoment,service_id,service_date,service_
     var destination
     for(st = 0; st < stopTimes.length; st++){
       //console.log (ts + " & " + st);
-      if (stopTimes[st].service_id == service_id){
+      if (stopTimes[st].serviceId == service_id){
         //get start and end time
-        if(stopTimes[st+1] !== undefined && stopTimes[st+1].station_sequence == 0){
+        if(stopTimes[st+1] !== undefined && stopTimes[st+1].stationSequence == 0){
           destination = stopTimes[st].station;
           break;
         };
@@ -878,20 +874,20 @@ module.exports = function Service(CurrentMoment,service_id,service_date,service_
     var prevmeterage
     for (st = 0; st < stopTimes.length; st++){
       if (direction == "UP"){
-        if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) < meterage){
+        if(stopTimes[st].serviceId == service_id && getMeterageOfStation(stopTimes[st].station) < meterage){
           prevstation = stopTimes[st].station
           prevtime = TFP2M(stopTimes[st].departs)
           prevmeterage = getMeterageOfStation(stopTimes[st].station)
         };
     }else if (direction == "DOWN"){
-          if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) > meterage){
+          if(stopTimes[st].serviceId == service_id && getMeterageOfStation(stopTimes[st].station) > meterage){
               prevstation = stopTimes[st].station
               prevtime = TFP2M(stopTimes[st].departs)
               prevmeterage = getMeterageOfStation(stopTimes[st].station)
           }
       }}
         if(prevtime == undefined){
-          //console.log(prevstation + " " + service_id)
+          console.log(prevstation + " " + service_id)
         }
           return [prevtime,prevmeterage,prevstation]
         };
@@ -901,14 +897,14 @@ module.exports = function Service(CurrentMoment,service_id,service_date,service_
     var nextmeterage
     for (st = 0; st < stopTimes.length; st++){
       if (direction == "UP"){
-          if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) > meterage){
+          if(stopTimes[st].serviceId == service_id && getMeterageOfStation(stopTimes[st].station) > meterage){
               nextstation = stopTimes[st].station
               nexttime = TFP2M(stopTimes[st].departs)
               nextmeterage = getMeterageOfStation(stopTimes[st].station)
               break;
           }
       }else{
-        if(stopTimes[st].service_id == service_id && getMeterageOfStation(stopTimes[st].station) < meterage){
+        if(stopTimes[st].serviceId == service_id && getMeterageOfStation(stopTimes[st].station) < meterage){
             nextstation = stopTimes[st].station
             nexttime = TFP2M(stopTimes[st].departs)
             nextmeterage = getMeterageOfStation(stopTimes[st].station)

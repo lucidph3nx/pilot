@@ -1,6 +1,6 @@
-const stopTimes = require('../Data/stopTimes')
-const passengerPercentage = require('../Data/passengerPercentage')
-const passengerAverage = require('../Data/passengerAverage')
+const stopTimes = require('../Data/stopTimes');
+const passengerPercentage = require('../Data/passengerPercentage');
+const passengerAverage = require('../Data/passengerAverage');
 
 //passenger count calculations
 module.exports = function getPaxAtStation(calendar_id, service_id, line, station, direction){
@@ -8,20 +8,22 @@ module.exports = function getPaxAtStation(calendar_id, service_id, line, station
   //array to hold list of stations and their sequence number
   var stoppingArray = [];
   var totalCount = getCountAndPeakType(calendar_id,service_id)[0];
+  let stationCount = ''
   var peakType = getCountAndPeakType(calendar_id,service_id)[1];
   var addToOne = 0;
 
+
   //loop through stopTimes and get all relevant stopTimes
   for (st=0; st<stopTimes.length; st++){
-    if(service_id == stopTimes[st].service_id){
+    if(service_id == stopTimes[st].serviceId){
       var percent
       for (spc=0; spc < passengerPercentage.length; spc++){
-        if(calendar_id == passengerPercentage[spc].calendar_id && line == passengerPercentage[spc].line && peakType == passengerPercentage[spc].peak_type && stopTimes[st].station == passengerPercentage[spc].station_id){
+        if(calendar_id == passengerPercentage[spc].calendarId && line == passengerPercentage[spc].line && peakType == passengerPercentage[spc].peakType && stopTimes[st].station == passengerPercentage[spc].stationId){
           percent = passengerPercentage[spc].percentage
           addToOne = addToOne + percent
         };
       }
-      stoppingArray.push({"station":stopTimes[st].station,"sequence":stopTimes[st].station_sequence,"percent":percent,"passengerCount":0})
+      stoppingArray.push({"station":stopTimes[st].station,"sequence":stopTimes[st].stationSequence,"percent":percent,"passengerCount":0})
     }
   };
 
@@ -35,13 +37,13 @@ module.exports = function getPaxAtStation(calendar_id, service_id, line, station
   };
 
   if (direction == "UP"){
-    stationCount = totalCount
+    stationCount = totalCount;
     for (sta=0; sta<stoppingArray.length;sta++){
       stationCount = stationCount - stoppingArray[sta].passengerCount;
       if (stoppingArray[sta].station == station){break;};
     };
   }else if (direction == "DOWN"){
-    stationCount = 0
+    stationCount = 0;
     for (sta=0; sta<stoppingArray.length;sta++){
       stationCount = stationCount + stoppingArray[sta].passengerCount;
       if (stoppingArray[sta].station == station){break;};
@@ -61,14 +63,14 @@ module.exports = function getPaxAtStation(calendar_id, service_id, line, station
     stationCount = "";
   };
 
-  return stationCount
+  return stationCount;
 
   function getCountAndPeakType(calendar_id,service_id){
     var peakType
     var count
     for(s=0;s<passengerAverage.length;s++){
-      if (passengerAverage[s].service_id == service_id){
-        peakType = passengerAverage[s].peak_type;
+      if (passengerAverage[s].serviceId == service_id){
+        peakType = passengerAverage[s].peakType;
         count = passengerAverage[s][calendar_id + "count"];
       };
     };
