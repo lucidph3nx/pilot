@@ -159,7 +159,6 @@ function readresponse(GeVisJSON) {
             }
           }
         }
-<<<<<<< HEAD
         let speed = train.VehicleSpeed;
         let compass = train.DirectionCompass;
         let locationAge = train.PositionAge;
