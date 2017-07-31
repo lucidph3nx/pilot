@@ -24,7 +24,7 @@ let calculateBusPax = require('./Functions/busEstimation');
 let vdsRoster = require('./Functions/vdsRoster');
 
 console.log('testing VDS roster SQL query');
-vdsRoster();
+//vdsRoster();
 
 //  for the users project
 let logger = require('morgan');
