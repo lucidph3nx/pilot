@@ -201,7 +201,7 @@ function readresponse(GeVisJSON) {
       for (st = 0; st < stopTimes.length; st++) {
         if (tripSheet[ts].serviceId == stopTimes[st].serviceId) {
           // get start and end time
-          if (stopTimes[st].station_sequence == 0) {
+          if (stopTimes[st].stationSequence == 0) {
             checkdeparts = tfp2m(stopTimes[st].departs);
             checkarrives = '';
           };
@@ -209,7 +209,7 @@ function readresponse(GeVisJSON) {
           // this indicates the end of the service
           if (st+1 < stopTimes.length) {
             if (stopTimes[st+1] == undefined ||
-                stopTimes[st+1].station_sequence == 0) {
+                stopTimes[st+1].stationSequence == 0) {
               checkarrives = tfp2m(stopTimes[st].arrives);
 
               // then check found service within time window
@@ -223,7 +223,8 @@ function readresponse(GeVisJSON) {
                 };
                 };
                   if (match == false) {
-                    let service = new Service(tripSheet[ts].serviceId,
+                    let service = new Service(currentMoment,
+                                              tripSheet[ts].serviceId,
                                               serviceDate,
                                               'FROM TIMETABLE',
                                               '',
