@@ -1,9 +1,9 @@
 // returns current datetime and object with todays VDS roster per trip
-module.exports = function vdsRoster() {
+// module.exports = function vdsRoster() {
 let mysql = require('mssql');
 
 let con = mysql.createConnection({
-  host: '10.44.0.236', // '10.44.0.236:49807', // 'APAUPVDSSQL01',
+  host: 'APAUPVDSSQL01', // '10.44.0.236:49807', // 'APAUPVDSSQL01',
   port: '49807',
   user: 'WEBSN',
   password: 'TDW@2017',
@@ -17,4 +17,4 @@ con.connect(function(err) {
     console.log(result);
   });
 });
-};
+// };

@@ -21,10 +21,10 @@ let dummytime = require('./Functions/debugMode')[1];
 let Service = require('./Functions/serviceConstructor');
 // let getPaxAtStation = require('./Functions/passengerEstimation');
 let calculateBusPax = require('./Functions/busEstimation');
-let vdsRoster = require('./Functions/vdsRoster');
+// let vdsRoster = require('./Functions/vdsRoster');
 
-console.log('testing VDS roster SQL query');
-//vdsRoster();
+// console.log('testing VDS roster SQL query');
+// vdsRoster();
 
 //  for the users project
 let logger = require('morgan');
