@@ -14,10 +14,6 @@ let stopTimes = require('./Data/stopTimes');
 let tripSheet = require('./Data/tripSheet');
 // let unitRoster = require('./Data/unitRoster');
 let berthing = require('./Data/shuntberthingM-F');
-let vdsRoster = require('./Function/vdsRoster');
-
-console.log('testing VDS roster SQL query');
-vdsRoster();
 
 //  supporting functions
 let dummydata = require('./Functions/debugMode')[0];
@@ -25,6 +21,10 @@ let dummytime = require('./Functions/debugMode')[1];
 let Service = require('./Functions/serviceConstructor');
 // let getPaxAtStation = require('./Functions/passengerEstimation');
 let calculateBusPax = require('./Functions/busEstimation');
+let vdsRoster = require('./Functions/vdsRoster');
+
+console.log('testing VDS roster SQL query');
+vdsRoster();
 
 //  for the users project
 let logger = require('morgan');
