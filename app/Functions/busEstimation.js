@@ -6,6 +6,7 @@ let unitRoster = require('../Data/unitRoster');
 let stopTimes = require('../Data/stopTimes');
 // let StationLatLon = require('../Data/StationLatLon');
 let calendarexceptions = require('../Data/calendarexceptions');
+let getPaxAtStation = require('./passengerEstimation');
 
 // bus passenger calculations for calc interface
 module.exports = function calculateBusPax(time, line, stationA, stationB) {
@@ -192,7 +193,7 @@ module.exports = function calculateBusPax(time, line, stationA, stationB) {
   function calendarServiceIDMatch(serviceId, calendarId) {
     let match = false;
     for (s = 0; s <unitRoster.length; s++) {
-      if (unitRoster[s].serviceId == serviceId &&
+      if (unitRoster[s].service_id == serviceId &&
           unitRoster[s].calendar_id == calendarId) {
         match = true;
         break;

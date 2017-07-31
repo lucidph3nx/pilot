@@ -14,6 +14,10 @@ let stopTimes = require('./Data/stopTimes');
 let tripSheet = require('./Data/tripSheet');
 // let unitRoster = require('./Data/unitRoster');
 let berthing = require('./Data/shuntberthingM-F');
+let vdsRoster = require('.Function/vdsRoster');
+
+console.log('testing VDS roster SQL query');
+vdsRoster();
 
 //  supporting functions
 let dummydata = require('./Functions/debugMode')[0];
@@ -352,3 +356,4 @@ app.post('/busCalc', function(request, response) {
 let port = 3000;
 app.listen(port);
 console.log('listening on ' + port);
+

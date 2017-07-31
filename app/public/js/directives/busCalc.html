@@ -60,7 +60,7 @@
       </thead>
       <tbody>
       <tr ng-repeat="service in busCalcResults[0].services| orderBy:['arrival']">
-        <td id="trainnumber" class="varianceNormal">{{ service.service_id }}</td>
+        <td id="trainnumber" class="varianceNormal">{{ service.serviceId }}</td>
         <td id="timeResults" class="varianceNormal">{{ service.arrival }}</td>
         <td id="speedResults" class="varianceNormal">{{ service.PaxEst }}</td>
       </tr>
@@ -83,7 +83,7 @@
       </thead>
       <tbody>
       <tr ng-repeat="service in busCalcResults[1].services| orderBy:['arrival']">
-        <td id="trainnumber" class="varianceNormal">{{ service.service_id }}</td>
+        <td id="trainnumber" class="varianceNormal">{{ service.serviceId }}</td>
         <td id="timeResults" class="varianceNormal">{{ service.arrival }}</td>
         <td id="speedResults" class="varianceNormal">{{ service.PaxEst }}</td>
       </tr>
