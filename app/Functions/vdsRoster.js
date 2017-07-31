@@ -11,6 +11,7 @@ let con = mysql.createConnection({
   database: 'VDS_TDW',
   dialectOptions: {
     instanceName: 'TDW',
+    domain: 'APAUPVDSSQL01',
   },
 });
 
