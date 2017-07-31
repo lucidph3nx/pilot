@@ -14,7 +14,7 @@ con.connect(function(err) {
   if (err) throw err;
   con.query('SELECT 1', function(err, result, fields) {
     if (err) throw err;
-    console.log(result);
+    console.log('connected!!!');
   });
 });
 // };
