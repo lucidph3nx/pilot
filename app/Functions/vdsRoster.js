@@ -3,7 +3,7 @@ module.exports = function vdsRoster() {
 let mysql = require('mysql');
 
 let con = mysql.createConnection({
-  host: 'APAUPVDSSQL01',
+  host: 'APAUPVDSSQL01\TDW',
   user: 'WEBSN',
   password: 'TDW@2017',
   database: 'VDS_TDW',
