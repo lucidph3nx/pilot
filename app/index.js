@@ -14,7 +14,7 @@ let stopTimes = require('./Data/stopTimes');
 let tripSheet = require('./Data/tripSheet');
 // let unitRoster = require('./Data/unitRoster');
 let berthing = require('./Data/shuntberthingM-F');
-let vdsRoster = require('.Function/vdsRoster');
+let vdsRoster = require('./Function/vdsRoster');
 
 console.log('testing VDS roster SQL query');
 vdsRoster();
