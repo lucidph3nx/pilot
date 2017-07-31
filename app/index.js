@@ -218,7 +218,7 @@ function readresponse(GeVisJSON) {
                 match = false;
                 // then check if already in active service list
                 for (cs = 0; cs < CurrentServices.length; cs++) {
-                if (tripSheet[ts].serviceId == CurrentServices[cs].serviceId) {
+                if (tripSheet[ts].serviceId == CurrentServices[cs].service_id) {
                   match = true;
                 };
                 };
