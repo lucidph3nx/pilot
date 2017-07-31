@@ -12,7 +12,7 @@ let con = mysql.createConnection({
 
 con.connect(function(err) {
   if (err) throw err;
-  con.query('SELECT DB_NAME(dbid) as DBName, COUNT(dbid) as NumberOfConnections, loginame as LoginName FROM sys.sysprocesses WHERE dbid > 0 GROUP BY dbid, loginame; ', function(err, result, fields) {
+  con.query('SELECT 1', function(err, result, fields) {
     if (err) throw err;
     console.log(result);
   });
