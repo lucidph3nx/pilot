@@ -166,7 +166,7 @@ function readresponse(GeVisJSON) {
         let speed = train.VehicleSpeed;
         let compass = train.DirectionCompass;
         let locationAge = train.PositionAge;
-        let KiwirailVariance = train.DelayTime;
+        let varianceKiwirail = train.DelayTime;
         let lat = train.Latitude;
         let long = train.Longitude;
         //  new service object
@@ -181,7 +181,7 @@ function readresponse(GeVisJSON) {
                                   speed,
                                   compass,
                                   locationAge,
-                                  KiwirailVariance,
+                                  varianceKiwirail,
                                   lat,
                                   long);
         CurrentServices.push(service.web());
@@ -197,7 +197,7 @@ function readresponse(GeVisJSON) {
   //  cycle through services
   //  find fist and last station Time of services
   for (ts = 0; ts < tripSheet.length; ts++) {
-    if (tripSheet[ts].calendar_id == calendarId) {
+    if (tripSheet[ts].calendarId == calendarId) {
       for (st = 0; st < stopTimes.length; st++) {
         if (tripSheet[ts].serviceId == stopTimes[st].serviceId) {
           // get start and end time

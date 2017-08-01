@@ -3,10 +3,13 @@ const stopTimes = require('../Data/stopTimes');
 const passengerPercentage = require('../Data/passengerPercentage');
 const passengerAverage = require('../Data/passengerAverage');
 
-//passenger count calculations
-module.exports = function getPaxAtStation(calendar_id, service_id, line, station, direction){
-
-  //array to hold list of stations and their sequence number
+// passenger count calculations
+module.exports = function getPaxAtStation(calendar_id,
+                                          service_id,
+                                          line,
+                                          station,
+                                          direction) {
+  // array to hold list of stations and their sequence number
   var stoppingArray = [];
   var totalCount = getCountAndPeakType(calendar_id,service_id)[0];
   let stationCount = ''
@@ -14,7 +17,7 @@ module.exports = function getPaxAtStation(calendar_id, service_id, line, station
   var addToOne = 0;
 
 
-  //loop through stopTimes and get all relevant stopTimes
+  // loop through stopTimes and get all relevant stopTimes
   for (st=0; st<stopTimes.length; st++){
     if(service_id == stopTimes[st].serviceId){
       var percent
@@ -51,7 +54,7 @@ module.exports = function getPaxAtStation(calendar_id, service_id, line, station
     };
   };
 
-  //test function
+  // test function
   if(isNaN(stationCount)){
     // console.log(service_id);
     // console.log("station count = " + stationCount)
