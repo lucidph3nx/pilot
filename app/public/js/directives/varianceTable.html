@@ -71,7 +71,7 @@
                                                 'late' : service.statusMessage == 'Running Late',
                                                 'verylate' : service.statusMessage == 'Running Very Late',
                                                 'delayrisk' : (service.statusMessage).substring(0, 10) == 'Delay Risk',
-                                                'linkingissue' : service.statusMessage == 'Check OMS Linking',
+                                                'linkingissue' : service.statusMessage == 'Check OMS Linking' || service.statusMessage == 'GPS Fault',
                                                 'intunnel' : service.statusMessage == 'In Rimutaka Tunnel' || service.statusMessage == 'In Tawa Tunnel' || service.statusMessage == 'In Tunnel 1' || service.statusMessage == 'In Tunnel 2',
                                                 'awaitingdeparture': service.statusMessage == 'Awaiting Departure',
                                                 'nolink' : service.statusMessage == 'No Linked Unit',

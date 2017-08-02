@@ -7,7 +7,7 @@ app.controller('AppController',  ['$scope', 'currentServices', 'berthing', 'stat
       currentServices.async().then(function(d) {
         initialtime = d.data.Time
         $scope.time = moment(initialtime).format("HH:mm:ss")
-        $scope.currentServices = d.data.CurrentServices;
+        $scope.currentServices = d.data.currentServices;
         extraseconds = 0
       });
       berthing.async().then(function(d) {
@@ -18,7 +18,7 @@ app.controller('AppController',  ['$scope', 'currentServices', 'berthing', 'stat
           currentServices.async().then(function(d) {
             initialtime = d.data.Time
             $scope.time = moment(initialtime).format("HH:mm:ss")
-            $scope.currentServices = d.data.CurrentServices;
+            $scope.currentServices = d.data.currentServices;
             extraseconds = 0
           });
       }, 15000);

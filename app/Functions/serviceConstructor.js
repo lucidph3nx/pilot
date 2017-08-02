@@ -25,7 +25,8 @@ module.exports = function Service(CurrentMoment,
                                   speed, compass,
                                   locationAge,
                                   varianceKiwirail,
-                                  lat, long) {
+                                  lat, long,
+                                  currentRoster) {
   this.currenttime = moment(CurrentMoment);
   this.serviceId = serviceId.trim();
   this.service_description = service_description.trim();
@@ -111,11 +112,14 @@ module.exports = function Service(CurrentMoment,
   this.TMNextServiceTime = getdepartsfromtimetable(this.service_date, this.TMNextService, this.calendar_id);
   if (this.TMNextServiceTime == '') {this.TMNextServiceTimeString = '';} else {this.TMNextServiceTimeString = moment(this.TMNextServiceTime).format('HH:mm');};
   this.TMNextTurnaround = getTurnaroundFrom2Times(this.arrives, this.TMNextServiceTime);
+  this.trainManagerShift = getStaffShift(this.serviceId, this.calendar_id, 'TM');
+  this.locomotiveEngineerShift = getStaffShift(this.serviceId, this.calendar_id, 'LE');
+  this.trainManager = getStaffFromVDSRoster(this.trainManagerShift, currentRoster);
+  this.locomotiveEngineer = getStaffFromVDSRoster(this.locomotiveEngineerShift, currentRoster);
   // pax count estimation
   this.passengerEstimation = getPaxAtStation(this.calendar_id, this.serviceId, this.line, this.prevTimedStation, this.direction);
-  // generate Status Messages (used to be own method, but needed too many variables)
-      let lowestTurnaround;
-      let TurnaroundLabel;
+  // generate Status Messages
+  // used to be own function, but needed too many variables
       let stopProcessing = false;
       let StatusMessage = '';
       let TempStatus;
@@ -275,8 +279,10 @@ module.exports = function Service(CurrentMoment,
         LastService: this.LastService,
         NextService: this.NextService,
         NextTime: this.NextTimeString,
+        LE: this.locomotiveEngineer,
         LENextService: this.LENextService,
         LENextServiceTime: this.LENextServiceTimeString,
+        TM: this.trainManager,
         TMNextService: this.TMNextService,
         TMNextServiceTime: this.TMNextServiceTimeString,
         passengerEstimation: this.passengerEstimation,
@@ -448,6 +454,27 @@ module.exports = function Service(CurrentMoment,
     return destination;
     };
   };
+  /**
+   * searches a current roster object
+   * returns actual staff names
+   * @param {string} shiftId
+   * @param {array} currentRoster
+   * @return {string}
+   */
+  function getStaffFromVDSRoster(shiftId, currentRoster) {
+    let staff = '';
+    if (currentRoster == undefined || currentRoster.length == 0) {
+      return staff;
+    };
+    for (s = 0; s < currentRoster.length; s++) {
+      if (currentRoster[s].shiftId == shiftId) {
+        staff = currentRoster[s].staffName;
+      };
+    };
+    return staff;
+  };
+
+
   function getUnitNextService(service_id, calendar_id) {
     // trying to solve the 5 min to midnight error
     if (service_id == undefined || calendar_id == undefined) {return '';};
@@ -475,6 +502,24 @@ module.exports = function Service(CurrentMoment,
       };
     };
     return LastService;
+  };
+    /**
+     * Takes some details and gets the shiftID from roster
+     * @param {string} serviceId 
+     * @param {string} calendarId 
+     * @param {string} workType - LE/TM/whatever
+     * @return {string} - shiftID
+     */
+    function getStaffShift(serviceId, calendarId, workType) {
+    let staffShift = '';
+    for (s = 0; s <masterRoster.length; s++) {
+      if (masterRoster[s].calendarId == calendarId &&
+        masterRoster[s].serviceID == (serviceId) &&
+        masterRoster[s].workType == (workType)) {
+            staffShift = masterRoster[s].shiftId;
+      };
+    };
+    return staffShift;
   };
   function getStaffNextService(service_id, calendar_id, work_type) {
     let NextService;
@@ -898,7 +943,7 @@ module.exports = function Service(CurrentMoment,
           }
       }}
         if (prevtime == undefined) {
-          console.log(prevstation + ' ' + service_id);
+          // console.log(prevstation + ' ' + service_id);
         }
           return [prevtime, prevmeterage, prevstation];
         };

@@ -21,10 +21,8 @@ let dummytime = require('./Functions/debugMode')[1];
 let Service = require('./Functions/serviceConstructor');
 // let getPaxAtStation = require('./Functions/passengerEstimation');
 let calculateBusPax = require('./Functions/busEstimation');
-// let vdsRoster = require('./Functions/vdsRoster');
+let vdsRoster = require('./Functions/vdsRoster');
 
-// console.log('testing VDS roster SQL query');
-// vdsRoster();
 
 //  for the users project
 let logger = require('morgan');
@@ -75,11 +73,12 @@ let options = {
 };
 
 let GeVisJSON;
-let CurrentServices = [];
+let currentServices = [];
+let currentRoster = [];
 let currentMoment;
 
 getnewgevisjson();
-
+getnewVDSRoster();
 /**
  * retrieve up to date json from GeVis API
  */
@@ -101,14 +100,13 @@ function getnewgevisjson() {
         } else {
           GeVisJSON = JSON.parse(body);
         };
-
         if (body == {'metadata': {'outputSpatialReference': 0},
                      'features': []}) {
           console.log('GeVis Vehicles responded empty @'
-                      + moment().format('YYYY-MM-DD HH:MM'));
+                      + moment().format('YYYY-MM-DD HH:mm'));
         } else {
           console.log('GeVis loaded ok @ '
-                      + moment().format('YYYY-MM-DD HH:MM'));
+                      + moment().format('YYYY-MM-DD HH:mm'));
       };
       readresponse(GeVisJSON);
     };
@@ -119,14 +117,23 @@ function getnewgevisjson() {
 
   setTimeout(getnewgevisjson, 10 * 1000);
 };
-
+/**
+ * retrieve up to date staff roster from VDS DB
+ */
+function getnewVDSRoster() {
+  currentRoster = [];
+  vdsRoster().then((response) => {
+    currentRoster = response;
+  });
+  setTimeout(getnewVDSRoster, 300 * 1000); // every 5 minutes
+};
 /**
  * Interprets GeVisJSON
  * @param {object} GeVisJSON - an object from GeVis API
  */
 function readresponse(GeVisJSON) {
   let trains = GeVisJSON.features;
-  CurrentServices = [];
+  currentServices = [];
   if (dummydata) {
     currentMoment = moment(dummytime);
   } else {
@@ -183,11 +190,12 @@ function readresponse(GeVisJSON) {
                                   locationAge,
                                   varianceKiwirail,
                                   lat,
-                                  long);
-        CurrentServices.push(service.web());
+                                  long,
+                                  currentRoster);
+        currentServices.push(service.web());
+    };
   };
- };
-};
+  };
   //  get current caledar_id for timetable search
   let calendarId = calendarIDfromDate(currentMoment);
   //  get all timetabled services that are not active
@@ -217,8 +225,8 @@ function readresponse(GeVisJSON) {
                   checkarrives > moment(currentMoment).add(5, 'minutes')) {
                 match = false;
                 // then check if already in active service list
-                for (cs = 0; cs < CurrentServices.length; cs++) {
-                if (tripSheet[ts].serviceId == CurrentServices[cs].service_id) {
+                for (cs = 0; cs < currentServices.length; cs++) {
+                if (tripSheet[ts].serviceId == currentServices[cs].service_id) {
                   match = true;
                 };
                 };
@@ -233,14 +241,15 @@ function readresponse(GeVisJSON) {
                                               '00:00',
                                               0,
                                               '',
-                                              '');
+                                              '',
+                                              currentRoster);
                     // look for previous service and mark if still running
-                    for (csa = 0; csa < CurrentServices.length; csa++) {
-                    if (CurrentServices[csa].serviceId == service.LastService) {
+                    for (csa = 0; csa < currentServices.length; csa++) {
+                    if (currentServices[csa].serviceId == service.LastService) {
                       service.statusMessage = 'Previous Service Delayed';
                     }
                     };
-                    CurrentServices.push(service.web());
+                    currentServices.push(service.web());
                   };
               };
             }
@@ -331,7 +340,7 @@ app.get('/pilot', (request, response) => {
 });
 
 app.get('/CurrentServices', (request, response) => {
-  let Current = {'Time': currentMoment, CurrentServices};
+  let Current = {'Time': currentMoment, currentServices};
   response.writeHead(200, {'Content-Type': 'application/json'}, {cache: false});
   response.write(JSON.stringify(Current));
   response.end();
