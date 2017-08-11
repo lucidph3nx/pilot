@@ -245,7 +245,7 @@ function readresponse(GeVisJSON) {
                                               currentRoster);
                     // look for previous service and mark if still running
                     for (csa = 0; csa < currentServices.length; csa++) {
-                    if (currentServices[csa].serviceId == service.LastService) {
+                    if (currentServices[csa].service_id == service.LastService) {
                       service.statusMessage = 'Previous Service Delayed';
                     }
                     };

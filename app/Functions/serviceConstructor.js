@@ -37,12 +37,16 @@ module.exports = function Service(CurrentMoment,
   this.direction = getdirectionfromserviceid(this.serviceId);
   this.KRline = lineToKiwiRailLine(this.line);
   this.linked_unit = linked_unit.trim();
+  // if linked unit is track machine, this.kiwirail is true
+  if (this.linked_unit.substring(0, 3) == 'ETM') {
+    this.kiwirail = true;
+  };
   this.second_unit = second_unit;
   this.second_unit_lat = second_unit_lat;
   this.second_unit_long = second_unit_long;
-  this.cars = getcarsfromtimetable(this.serviceId, this.calendar_id);
-  this.journey_id = getjourneyfromtimetable(this.serviceId, this.calendar_id)[0];
-  this.journey_order = getjourneyfromtimetable(this.serviceId, this.calendar_id)[1];
+  this.cars = getCarsUnitRoster(this.serviceId, this.calendar_id);
+  this.journeyId = getJourneyUnitRoster(this.serviceId, this.calendar_id)[0];
+  this.journeyOrder = getJourneyUnitRoster(this.serviceId, this.calendar_id)[1];
   this.speed = speed;
   this.compass = compass;
   this.moving = (speed >= 1);
@@ -118,31 +122,41 @@ module.exports = function Service(CurrentMoment,
   this.locomotiveEngineer = getStaffFromVDSRoster(this.locomotiveEngineerShift, currentRoster);
   // pax count estimation
   this.passengerEstimation = getPaxAtStation(this.calendar_id, this.serviceId, this.line, this.prevTimedStation, this.direction);
+
   // generate Status Messages
   // used to be own function, but needed too many variables
       let stopProcessing = false;
       let StatusMessage = '';
       let TempStatus;
-      let StatusArray = ['', '', '']; // this will be in the format of [0] = delays, [1] = tracking, [2] = stopped
+      // this will be in the format of [0] = delays,
+      //                               [1] = tracking,
+      //                               [2] = stopped
+      let StatusArray = ['', '', ''];
 
       // filter out the non metlinks
       if (this.kiwirail) {
         TempStatus = 'Non-Metlink Service';
         StatusArray[0] = TempStatus;
         StatusArray[1] = TempStatus;
-        if (StatusMessage == '' && stopProcessing == false) {StatusMessage = TempStatus;};
+        if (StatusMessage == '' && stopProcessing == false) {
+          StatusMessage = TempStatus;
+        };
         stopProcessing = true;
       };
       // filter out things found from timetable
       if (this.linked_unit == '') {
         TempStatus = 'No Linked Unit';
-        if (StatusMessage == '' && stopProcessing == false) {StatusMessage = TempStatus;};
+        if (StatusMessage == '' && stopProcessing == false) {
+          StatusMessage = TempStatus;
+        };
         stopProcessing = true;
       };
       // filter already arrived trains
       if (this.laststation == this.destination) {
         TempStatus = 'Arriving';
-        if (StatusMessage == '' && stopProcessing == false) {StatusMessage = TempStatus;};
+        if (StatusMessage == '' && stopProcessing == false) {
+          StatusMessage = TempStatus;
+        };
         stopProcessing = true;
       }
       // the early/late status generation
@@ -159,9 +173,16 @@ module.exports = function Service(CurrentMoment,
           TempStatus = 'Running Very Late';
           StatusArray[0] = TempStatus;
       };
-      if (StatusMessage == '' && stopProcessing == false) {StatusMessage = TempStatus;};
+      if (StatusMessage == '' && stopProcessing == false) {
+        StatusMessage = TempStatus;
+      };
       // compare turnarounds to lateness to look for issues
-      if (((this.NextTurnaround != '') && (this.NextTurnaround < this.schedule_variance_min)) || ((this.LENextTurnaround != '') && (this.le_turnaround < this.schedule_variance_min)) || ((this.TMNextTurnaround != '') && (this.TMNextTurnaround < this.schedule_variance_min))) {
+      if (((this.NextTurnaround != '')
+        && (this.NextTurnaround < this.schedule_variance_min))
+      || ((this.LENextTurnaround != '')
+          && (this.le_turnaround < this.schedule_variance_min))
+      || ((this.TMNextTurnaround != '')
+          && (this.TMNextTurnaround < this.schedule_variance_min))) {
         TempStatus = 'Delay Risk:';
 
         if ((this.NextTurnaround < this.schedule_variance_min)) {
@@ -174,10 +195,14 @@ module.exports = function Service(CurrentMoment,
           TempStatus = TempStatus + ' TM';
         };
         // check for negative turnarounds and just give an error status
-        if ((this.NextTurnaround <0) || (this.LENextTurnaround < 0) || (this.TMNextTurnaround < 0)) {
+        if ((this.NextTurnaround < 0)
+          || (this.LENextTurnaround < 0)
+          || (this.TMNextTurnaround < 0)) {
           TempStatus = 'Timetravel Error';
         };
-        if (stopProcessing == false) {StatusMessage = TempStatus;};
+        if (stopProcessing == false) {
+          StatusMessage = TempStatus;
+        };
         stopProcessing = true;
       };
       // look at linking issues
@@ -295,12 +320,17 @@ module.exports = function Service(CurrentMoment,
       return servicelite;
     };
 
-  // timetable lookup functions
-  function getcarsfromtimetable(service_id, calendar_id) {
+  /**
+   *performs a look up of the Unit Roster to get the number of cars
+   * @param {string} serviceId 
+   * @param {string} calendarId 
+   * @return {integer} - number of cars
+   */
+  function getCarsUnitRoster(serviceId, calendarId) {
     let cars;
     for (s = 0; s <unitRoster.length; s++) {
-      if (unitRoster[s].calendar_id == calendar_id) {
-        if (unitRoster[s].service_id == service_id) {
+      if (unitRoster[s].calendarId == calendarId) {
+        if (unitRoster[s].serviceId == serviceId) {
           cars = unitRoster[s].units * 2;
           break;
         }
@@ -312,12 +342,18 @@ module.exports = function Service(CurrentMoment,
     return cars;
     };
   };
-  function getjourneyfromtimetable(service_id, calendar_id) {
+  /**
+   * performs a look up of the Unit Roster to get the Journey Id and Order
+   * @param {string} serviceId 
+   * @param {string} calendarId 
+   * @return {string}
+   */
+  function getJourneyUnitRoster(serviceId, calendarId) {
     let journey = [];
     for (s = 0; s <unitRoster.length; s++) {
-      if (unitRoster[s].calendar_id == calendar_id) {
-        if (unitRoster[s].service_id == service_id) {
-          journey = [unitRoster[s].journey_id, unitRoster[s].journey_order];
+      if (unitRoster[s].calendarId == calendarId) {
+        if (unitRoster[s].serviceId == serviceId) {
+          journey = [unitRoster[s].journeyId, unitRoster[s].journeyOrder];
           break;
         }
       }
@@ -328,18 +364,24 @@ module.exports = function Service(CurrentMoment,
     return journey;
     };
   };
-  function getdepartsfromtimetable(service_date, service_id, calendar_id) {
+  function getdepartsfromtimetable(serviceDate, serviceId, calendarId) {
     let departs;
     for (st = 0; st < stopTimes.length; st++) {
-      // console.log (ts + " & " + st);
-      if (service_id == stopTimes[st].serviceId) {
+      if (serviceId == stopTimes[st].serviceId) {
         // get start and end time
         if (stopTimes[st].stationSequence == 0) {
-          departs = TFP2M(stopTimes[st].departs);
-          departs.set({'year': service_date.year(), 'month': service_date.month(), 'day': service_date.day()});
+          departs = twp2m(stopTimes[st].departs);
+          departs.set({'year': serviceDate.year(),
+                       'month': serviceDate.month(),
+                       'day': serviceDate.day()});
+          // fixes some time travel errors, not an elegant solution
+          if (departs.hour() < 3) {
+            departs.add(1, 'day');
+          }
           break;
         };
-      }};
+      };
+    };
     if (departs == '' || departs == 0 || typeof departs == 'undefined') {
       return '';
     } else {
@@ -360,11 +402,15 @@ module.exports = function Service(CurrentMoment,
       if (service_id == stopTimes[st].serviceId) {
         // get start and end time
         if (st == stopTimes.length) {
-          arrives = TFP2M(stopTimes[st].arrives);
+          arrives = twp2m(stopTimes[st].arrives);
           break;
         } else if (stopTimes[st+1] !== undefined && stopTimes[st+1].stationSequence == 0) {
-          arrives = TFP2M(stopTimes[st].arrives);
+          arrives = twp2m(stopTimes[st].arrives);
           arrives.set({'year': service_date.year(), 'month': service_date.month(), 'day': service_date.day()});
+          // fixes some time travel errors, not an elegant solution
+          if (arrives.hour() < 3) {
+            arrives.add(1, 'day');
+          }
           break;
         };
       }};
@@ -475,14 +521,16 @@ module.exports = function Service(CurrentMoment,
   };
 
 
-  function getUnitNextService(service_id, calendar_id) {
+  function getUnitNextService(serviceId, calendarId) {
     // trying to solve the 5 min to midnight error
-    if (service_id == undefined || calendar_id == undefined) {return '';};
+    if (serviceId == undefined || calendarId == undefined) {
+      return '';
+    };
     let NextService;
     for (s = 0; s <unitRoster.length; s++) {
-      if (unitRoster[s].calendar_id == calendar_id && unitRoster[s].service_id == (service_id)) {
-          if (unitRoster[s+1] !== undefined && unitRoster[s].journey_id == unitRoster[s+1].journey_id) {
-            NextService = unitRoster[s+1].service_id;
+      if (unitRoster[s].calendarId == calendarId && unitRoster[s].serviceId == (serviceId)) {
+          if (unitRoster[s+1] !== undefined && unitRoster[s].journeyId == unitRoster[s+1].journeyId) {
+            NextService = unitRoster[s+1].serviceId;
           } else {
             NextService = '';
           };
@@ -493,9 +541,9 @@ module.exports = function Service(CurrentMoment,
   function getUnitLastService(service_id, calendar_id) {
     let LastService;
     for (s = 0; s <unitRoster.length; s++) {
-      if (unitRoster[s].calendar_id == calendar_id && unitRoster[s].service_id == (service_id)) {
-          if (unitRoster[s-1] !== undefined && unitRoster[s].journey_id == unitRoster[s-1].journey_id) {
-            LastService = unitRoster[s-1].service_id;
+      if (unitRoster[s].calendarId == calendar_id && unitRoster[s].serviceId == (service_id)) {
+          if (unitRoster[s-1] !== undefined && unitRoster[s].journeyId == unitRoster[s-1].journeyId) {
+            LastService = unitRoster[s-1].serviceId;
           } else {
             LastService = '';
           };
@@ -932,13 +980,13 @@ module.exports = function Service(CurrentMoment,
       if (direction == 'UP') {
         if (stopTimes[st].serviceId == service_id && getMeterageOfStation(stopTimes[st].station) < meterage) {
           prevstation = stopTimes[st].station;
-          prevtime = TFP2M(stopTimes[st].departs);
+          prevtime = twp2m(stopTimes[st].departs);
           prevmeterage = getMeterageOfStation(stopTimes[st].station);
         };
     } else if (direction == 'DOWN') {
           if (stopTimes[st].serviceId == service_id && getMeterageOfStation(stopTimes[st].station) > meterage) {
               prevstation = stopTimes[st].station;
-              prevtime = TFP2M(stopTimes[st].departs);
+              prevtime = twp2m(stopTimes[st].departs);
               prevmeterage = getMeterageOfStation(stopTimes[st].station);
           }
       }}
@@ -955,14 +1003,14 @@ module.exports = function Service(CurrentMoment,
       if (direction == 'UP') {
           if (stopTimes[st].serviceId == service_id && getMeterageOfStation(stopTimes[st].station) > meterage) {
               nextstation = stopTimes[st].station;
-              nexttime = TFP2M(stopTimes[st].departs);
+              nexttime = twp2m(stopTimes[st].departs);
               nextmeterage = getMeterageOfStation(stopTimes[st].station);
               break;
           }
       } else {
         if (stopTimes[st].serviceId == service_id && getMeterageOfStation(stopTimes[st].station) < meterage) {
             nextstation = stopTimes[st].station;
-            nexttime = TFP2M(stopTimes[st].departs);
+            nexttime = twp2m(stopTimes[st].departs);
             nextmeterage = getMeterageOfStation(stopTimes[st].station);
             break;
         }
@@ -1032,8 +1080,14 @@ module.exports = function Service(CurrentMoment,
       };
       return calendar_id;
   };
-  function TFP2M(TwentyFourPlusString) {
-    // TwentyFourPlusStringToMoment
+  /**
+   * Takes a time string in the form HH:mm(:ss)
+   * Times can be greater than 24 hour
+   * Converts it into a moment object
+   * @param {string} TwentyFourPlusString 
+   * @return {object} - Moment object
+   */
+  function twp2m(TwentyFourPlusString) {
     let tomorrow = false;
     let NewHours = parseInt(TwentyFourPlusString.split(':')[0]);
     if (NewHours >= 24) {
@@ -1046,15 +1100,16 @@ module.exports = function Service(CurrentMoment,
     } else if (tomorrow) {
       thisMoment = moment().add(1, 'day');
     };
-
     let NewMinutes = parseInt(TwentyFourPlusString.split(':')[1]);
     let NewSeconds = parseInt(TwentyFourPlusString.split(':')[2]);
     thisMoment.set('hour', NewHours);
     thisMoment.set('minute', NewMinutes);
-    if (isNaN(NewSeconds) == false) {  thisMoment.set('second', NewSeconds); }
-    else {thisMoment.set('seconds', 0);
-        thisMoment.set('miliseconds', 0);
-      };
+    if (isNaN(NewSeconds) == false) {
+      thisMoment.set('second', NewSeconds);
+    } else {
+      thisMoment.set('seconds', 0);
+    };
+    thisMoment.set('miliseconds', 0);
     return thisMoment;
   }
 };

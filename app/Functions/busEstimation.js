@@ -193,8 +193,8 @@ module.exports = function calculateBusPax(time, line, stationA, stationB) {
   function calendarServiceIDMatch(serviceId, calendarId) {
     let match = false;
     for (s = 0; s <unitRoster.length; s++) {
-      if (unitRoster[s].service_id == serviceId &&
-          unitRoster[s].calendar_id == calendarId) {
+      if (unitRoster[s].serviceId == serviceId &&
+          unitRoster[s].calendarId == calendarId) {
         match = true;
         break;
       }
