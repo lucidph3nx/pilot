@@ -375,7 +375,7 @@ module.exports = function Service(CurrentMoment,
                        'month': serviceDate.month(),
                        'day': serviceDate.day()});
           // fixes some time travel errors, not an elegant solution
-          if (departs.hour() < 3) {
+          if (departs.hour() < 3 && serviceDate.day() !== moment().day()) {
             departs.add(1, 'day');
           }
           break;
@@ -395,20 +395,22 @@ module.exports = function Service(CurrentMoment,
       return false;
     }
   }
-  function getarrivesfromtimetable(service_date, service_id, calendar_id) {
+  function getarrivesfromtimetable(serviceDate, serviceId, calendarId) {
     let arrives;
     for (st = 0; st < stopTimes.length; st++) {
       // console.log (ts + " & " + st);
-      if (service_id == stopTimes[st].serviceId) {
+      if (serviceId == stopTimes[st].serviceId) {
         // get start and end time
         if (st == stopTimes.length) {
           arrives = twp2m(stopTimes[st].arrives);
           break;
         } else if (stopTimes[st+1] !== undefined && stopTimes[st+1].stationSequence == 0) {
           arrives = twp2m(stopTimes[st].arrives);
-          arrives.set({'year': service_date.year(), 'month': service_date.month(), 'day': service_date.day()});
+          arrives.set({'year': serviceDate.year(),
+                       'month': serviceDate.month(),
+                       'day': serviceDate.day()});
           // fixes some time travel errors, not an elegant solution
-          if (arrives.hour() < 3) {
+          if (arrives.hour() < 3 && serviceDate.day() !== moment().day()) {
             arrives.add(1, 'day');
           }
           break;
