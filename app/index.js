@@ -142,12 +142,7 @@ function readresponse(GeVisJSON) {
  // itterate through all items in GeVisJSON and use all relevant ones
  for (gj = 0; gj < trains.length; gj++) {
    let train = trains[gj].attributes;
-  //  get those linked to service
-  if (train.TrainID != '') {
-   //  get those south of levin, east of cook strait and not a ferry
-   if (train.Longitude > 174.5
-     & train.Latitude < -40.625887
-     & train.EquipmentDesc != 'Rail Ferry     ' ) {
+  if (meetsTrainSelectionCriteria(train)) {
         let serviceId = train.TrainID;
         let serviceDate = train.TrainDate;
         let serviceDescription = train.TrainDesc;
@@ -194,8 +189,6 @@ function readresponse(GeVisJSON) {
                                   currentRoster);
         currentServices.push(service.web());
     };
-  };
-  };
   //  get current caledar_id for timetable search
   let calendarId = calendarIDfromDate(currentMoment);
   //  get all timetabled services that are not active
@@ -258,7 +251,25 @@ function readresponse(GeVisJSON) {
       };
     }
   };
-};
+}
+/**
+ * decides if train meets selection criteria
+ * @param {object} train
+ * - a train object from GeVis API
+ * @return {boolean} 
+ */
+function meetsTrainSelectionCriteria(train) {
+  const northernBoundary = -40.625887; // Levin
+  const westernBoundary = 174.5; // cook strait 
+  if (train.TrainID !== '' &&
+    train.Longitude > westernBoundary &&
+    train.Latitude < northernBoundary &&
+    train.EquipmentDesc !== 'Rail Ferry     ' ) {
+      return true;
+  } else {
+    return false;
+  }
+}
 
 /**
  * Convert String in 24+ hour format to moment
