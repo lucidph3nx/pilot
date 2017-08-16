@@ -17,36 +17,36 @@ let dummydata = require('../Functions/debugMode')[0];
 // service constructor Object, represents a single rail service
 module.exports = function Service(CurrentMoment,
                                   serviceId,
-                                  service_date,
-                                  service_description,
-                                  linked_unit,
-                                  second_unit,
-                                  second_unit_lat, second_unit_long,
+                                  serviceDate,
+                                  serviceDescription,
+                                  linkedUnit,
+                                  secondUnit,
+                                  secondUnitLat, secondUnitLon,
                                   speed, compass,
                                   locationAge,
                                   varianceKiwirail,
-                                  lat, long,
+                                  lat, lon,
                                   currentRoster) {
   this.currenttime = moment(CurrentMoment);
   this.serviceId = serviceId.trim();
-  this.service_description = service_description.trim();
-  this.service_date = moment(service_date.trim(), 'YYYYMMDD');
-  this.calendar_id = calendarIDfromDate(this.service_date);
+  this.serviceDescription = serviceDescription.trim();
+  this.serviceDate = moment(serviceDate.trim(), 'YYYYMMDD');
+  this.calendarId = calendarIdFromDate(this.serviceDate);
   this.line = getlinefromserviceid(this.serviceId)[0];
-  this.kiwirail = getlinefromserviceid(this.serviceId, service_description)[1];
+  this.kiwirail = getlinefromserviceid(this.serviceId, serviceDescription)[1];
   this.direction = getdirectionfromserviceid(this.serviceId);
   this.KRline = lineToKiwiRailLine(this.line);
-  this.linked_unit = linked_unit.trim();
+  this.linkedUnit = linkedUnit.trim();
   // if linked unit is track machine, this.kiwirail is true
-  if (this.linked_unit.substring(0, 3) == 'ETM') {
+  if (this.linkedUnit.substring(0, 3) == 'ETM') {
     this.kiwirail = true;
   };
-  this.second_unit = second_unit;
-  this.second_unit_lat = second_unit_lat;
-  this.second_unit_long = second_unit_long;
-  this.cars = getCarsUnitRoster(this.serviceId, this.calendar_id);
-  this.journeyId = getJourneyUnitRoster(this.serviceId, this.calendar_id)[0];
-  this.journeyOrder = getJourneyUnitRoster(this.serviceId, this.calendar_id)[1];
+  this.secondUnit = secondUnit;
+  this.secondUnitLat = secondUnitLat;
+  this.secondUnitLon = secondUnitLon;
+  this.cars = getCarsUnitRoster(this.serviceId, this.calendarId);
+  this.journeyId = getJourneyUnitRoster(this.serviceId, this.calendarId)[0];
+  this.journeyOrder = getJourneyUnitRoster(this.serviceId, this.calendarId)[1];
   this.speed = speed;
   this.compass = compass;
   this.moving = (speed >= 1);
@@ -55,73 +55,117 @@ module.exports = function Service(CurrentMoment,
     parseInt(this.location_age.toString().split(':')[0]*60) +
     parseInt(this.location_age.toString().split(':')[1]);
   this.varianceKiwirail = gevisvariancefix(varianceKiwirail);
-  this.departs = getdepartsfromtimetable(this.service_date,
+  this.departs = getdepartsfromtimetable(this.serviceDate,
                                          this.serviceId,
-                                         this.calendar_id);
+                                         this.calendarId);
   if (this.departs == '') {
     this.departsString = '';
   } else {
     this.departsString = moment(this.departs).format('HH:mm');
   };
   this.departed = getdepartedornot(this.currenttime, this.departs);
-  this.arrives = getarrivesfromtimetable(this.service_date,
+  this.arrives = getarrivesfromtimetable(this.serviceDate,
                                          this.serviceId,
-                                         this.calendar_id);
+                                         this.calendarId);
   if (this.arrives == '') {
     this.arrivesString = '';
   } else {
     this.arrivesString = moment(this.arrives).format('HH:mm');
   };
-  this.origin = getorigin(this.serviceId, this.service_description, this.kiwirail, this.calendar_id);
-  this.destination = getdestination(this.serviceId, this.service_description, this.kiwirail, this.calendar_id);
+  this.origin = getorigin(this.serviceId,
+                          this.serviceDescription,
+                          this.kiwirail,
+                          this.calendarId);
+  this.destination = getdestination(this.serviceId,
+                                    this.serviceDescription,
+                                    this.kiwirail,
+                                    this.calendarId);
   this.lat = lat;
-  this.long = long;
-  this.meterage = Math.floor(getmeterage(this.lat, this.long, this.KRline, this.line, this.direction));
-  this.laststation = getlaststation(this.lat, this.long, this.meterage, this.KRline, this.direction)[0];
-  this.laststationcurrent = getlaststation(this.lat, this.long, this.meterage, this.KRline, this.direction)[1];
+  this.lon = lon;
+  this.meterage = getmeterage(this.lat, this.lon,
+                              this.KRline,
+                              this.line, this.direction);
+  let lastStationDetails = getlaststation(this.lat, this.lon,
+                                          this.meterage,
+                                          this.KRline, this.direction);
+  this.laststation = lastStationDetails[0];
+  this.laststationcurrent = lastStationDetails[1];
   // variables needed to calculate own delay
-  this.prevTimedStation = getPrevStnDetails(this.service_date, this.meterage, this.direction, this.serviceId)[2];
-  this.prevstntime = getPrevStnDetails(this.service_date, this.meterage, this.direction, this.serviceId)[0];
-  this.nextstntime = getNextStnDetails(this.service_date, this.meterage, this.direction, this.serviceId)[0];
-  this.prevstnmeterage = getPrevStnDetails(this.service_date, this.meterage, this.direction, this.serviceId)[1];
-  this.nextstnmeterage = getNextStnDetails(this.service_date, this.meterage, this.direction, this.serviceId)[1];
-  // allow for posibility of future fine grained delay calculations
+  let previousStationDetails = getPrevStnDetails(this.serviceDate,
+                                                 this.meterage,
+                                                 this.direction,
+                                                 this.serviceId);
+  let nextStationDetails = getNextStnDetails(this.serviceDate,
+                                             this.meterage,
+                                             this.direction,
+                                             this.serviceId);
+  this.prevTimedStation = previousStationDetails[2];
+  this.prevstntime = previousStationDetails[0];
+  this.nextstntime = nextStationDetails[0];
+  this.prevstnmeterage = previousStationDetails[1];
+  this.nextstnmeterage = nextStationDetails[1];
+  // different setup if we are using dummy data for debug
   if (dummydata) {
     this.schedule_variance = this.varianceKiwirail;
     this.schedule_variance_min = this.varianceKiwirail;
     this.varianceFriendly = this.varianceKiwirail;
   } else {
-    this.schedule_variance = getScheduleVariance(this.kiwirail, this.currenttime, this.service_date, this.meterage, this.prevstntime, this.nextstntime, this.prevstnmeterage, this.nextstnmeterage, this.location_age_seconds)[1];
-    this.schedule_variance_min = getScheduleVariance(this.kiwirail, this.currenttime, this.service_date, this.meterage, this.prevstntime, this.nextstntime, this.prevstnmeterage, this.nextstnmeterage, this.location_age_seconds)[0];
+    let scheduleVariance = getScheduleVariance(this.kiwirail,
+                                               this.currenttime,
+                                               this.serviceDate,
+                                               this.meterage,
+                                               this.prevstntime,
+                                               this.nextstntime,
+                                               this.prevstnmeterage,
+                                               this.nextstnmeterage,
+                                               this.location_age_seconds);
+    this.schedule_variance = scheduleVariance[1];
+    this.schedule_variance_min = scheduleVariance[0];
     if (this.schedule_variance_min == '') {
       this.varianceFriendly = this.varianceKiwirail;
     } else {
       this.varianceFriendly = (this.schedule_variance_min).toFixed(0);
-      if (this.varianceFriendly == -0) {this.varianceFriendly = 0;};
+      if (this.varianceFriendly == -0) {
+        this.varianceFriendly = 0;
+      };
     }
     };
   // prev service
-  this.LastService = getUnitLastService(this.serviceId, this.calendar_id);
+  this.LastService = getUnitLastService(this.serviceId, this.calendarId);
   // next service details
-  this.NextService = getUnitNextService(this.serviceId, this.calendar_id);
-  this.NextTime = getdepartsfromtimetable(this.service_date, this.NextService, this.calendar_id);
-  if (this.NextTime == '') {this.NextTimeString = '';} else {this.NextTimeString = moment(this.NextTime).format('HH:mm');};
+  this.NextService = getUnitNextService(this.serviceId, this.calendarId);
+  this.NextTime = getdepartsfromtimetable(this.serviceDate,
+                                          this.NextService,
+                                          this.calendarId);
+  if (this.NextTime == '') {
+    this.NextTimeString = '';
+  } else {
+    this.NextTimeString = moment(this.NextTime).format('HH:mm');
+  };
   this.NextTurnaround = getTurnaroundFrom2Times(this.arrives, this.NextTime);
   // staff next service details
-  this.LENextService = getStaffNextService(this.serviceId, this.calendar_id, 'LE');
-  this.LENextServiceTime = getdepartsfromtimetable(this.service_date, this.LENextService, this.calendar_id);
-  if (this.LENextServiceTime == '') {this.LENextServiceTimeString = '';} else {this.LENextServiceTimeString = moment(this.LENextServiceTime).format('HH:mm');};
+  this.LENextService = getStaffNextService(this.serviceId,
+                                           this.calendarId,
+                                           'LE');
+  this.LENextServiceTime = getdepartsfromtimetable(this.serviceDate,
+                                                   this.LENextService,
+                                                   this.calendarId);
+  if (this.LENextServiceTime == '') {
+    this.LENextServiceTimeString = '';
+  } else {
+    this.LENextServiceTimeString = moment(this.LENextServiceTime).format('HH:mm');
+  };
   this.LENextTurnaround = getTurnaroundFrom2Times(this.arrives, this.LENextServiceTime);
-  this.TMNextService = getStaffNextService(this.serviceId, this.calendar_id, 'TM');
-  this.TMNextServiceTime = getdepartsfromtimetable(this.service_date, this.TMNextService, this.calendar_id);
+  this.TMNextService = getStaffNextService(this.serviceId, this.calendarId, 'TM');
+  this.TMNextServiceTime = getdepartsfromtimetable(this.serviceDate, this.TMNextService, this.calendarId);
   if (this.TMNextServiceTime == '') {this.TMNextServiceTimeString = '';} else {this.TMNextServiceTimeString = moment(this.TMNextServiceTime).format('HH:mm');};
   this.TMNextTurnaround = getTurnaroundFrom2Times(this.arrives, this.TMNextServiceTime);
-  this.trainManagerShift = getStaffShift(this.serviceId, this.calendar_id, 'TM');
-  this.locomotiveEngineerShift = getStaffShift(this.serviceId, this.calendar_id, 'LE');
+  this.trainManagerShift = getStaffShift(this.serviceId, this.calendarId, 'TM');
+  this.locomotiveEngineerShift = getStaffShift(this.serviceId, this.calendarId, 'LE');
   this.trainManager = getStaffFromVDSRoster(this.trainManagerShift, currentRoster);
   this.locomotiveEngineer = getStaffFromVDSRoster(this.locomotiveEngineerShift, currentRoster);
   // pax count estimation
-  this.passengerEstimation = getPaxAtStation(this.calendar_id, this.serviceId, this.line, this.prevTimedStation, this.direction);
+  this.passengerEstimation = getPaxAtStation(this.calendarId, this.serviceId, this.line, this.prevTimedStation, this.direction);
 
   // generate Status Messages
   // used to be own function, but needed too many variables
@@ -144,7 +188,7 @@ module.exports = function Service(CurrentMoment,
         stopProcessing = true;
       };
       // filter out things found from timetable
-      if (this.linked_unit == '') {
+      if (this.linkedUnit == '') {
         TempStatus = 'No Linked Unit';
         if (StatusMessage == '' && stopProcessing == false) {
           StatusMessage = TempStatus;
@@ -208,37 +252,55 @@ module.exports = function Service(CurrentMoment,
       // look at linking issues
       if (this.location_age_seconds >=180 && this.kiwirail == false) {
           TempStatus = '';
-        // identify tunnel tracking issues and provide alternative status message
-        if (this.direction == 'UP' && this.laststation == 'MAYM' && (this.location_age_seconds < 900) ) {
+        // identify tunnel tracking issues
+        if (this.direction == 'UP' &&
+            this.laststation == 'MAYM' &&
+            this.location_age_seconds < 900) {
           TempStatus = 'In Rimutaka Tunnel';
           StatusArray[1] = TempStatus;
-        } else if (this.direction == 'UP' && this.laststation == 'UPPE' && (this.location_age_seconds < 900)) {
+        } else if (this.direction == 'UP' &&
+                   this.laststation == 'UPPE' &&
+                   this.location_age_seconds < 900) {
           TempStatus = 'In Rimutaka Tunnel';
           StatusArray[1] = TempStatus;
-        } else if (this.direction == 'DOWN' && this.laststation == 'FEAT' && (this.location_age_seconds < 900)) {
+        } else if (this.direction == 'DOWN' &&
+                   this.laststation == 'FEAT' &&
+                   this.location_age_seconds < 900) {
           TempStatus = 'In Rimutaka Tunnel';
           StatusArray[1] = TempStatus;
-        } else if (this.direction == 'DOWN' && this.laststation == 'TAKA' && (this.location_age_seconds < 600) && this.line == 'KPL') {
+        } else if (this.direction == 'DOWN' &&
+                   this.laststation == 'TAKA' &&
+                   this.location_age_seconds < 600 &&
+                   this.line == 'KPL') {
           TempStatus = 'In Tawa Tunnel';
           StatusArray[1] = TempStatus;
-        } else if (this.direction == 'UP' && this.laststation == 'KAIW' && (this.location_age_seconds < 600)  && this.line == 'KPL') {
+        } else if (this.direction == 'UP' &&
+                   this.laststation == 'KAIW' &&
+                   this.location_age_seconds < 600 &&
+                   this.line == 'KPL') {
           TempStatus = 'In Tawa Tunnel';
           StatusArray[1] = TempStatus;
-        } else if (this.direction == 'DOWN' && this.laststation == 'T2' && (this.location_age_seconds < 600) && this.line == 'KPL') {
+        } else if (this.direction == 'DOWN' &&
+                   this.laststation == 'T2' &&
+                   this.location_age_seconds < 600 &&
+                   this.line == 'KPL') {
           TempStatus = 'In Tunnel 1';
           StatusArray[1] = TempStatus;
-        } else if (this.direction == 'UP' && this.laststation == 'T1' && (this.location_age_seconds < 600)  && this.line == 'KPL') {
+        } else if (this.direction == 'UP' &&
+                   this.laststation == 'T1' &&
+                   this.location_age_seconds < 600 &&
+                   this.line == 'KPL') {
           TempStatus = 'In Tunnel 2';
           StatusArray[1] = TempStatus;
         } else if (this.departed == false && TempStatus == '') {
           TempStatus = 'Awaiting Departure';
           StatusArray[0] = TempStatus;
           StatusArray[1] = TempStatus;
-        } else {
+        } else if (secondUnit !== '') {
           let first = {latitude: this.lat,
-                     longitude: this.long };
-          let sec = {latitude: this.second_unit_lat,
-                     longitude: this.second_unit_long };
+                     longitude: this.lon};
+          let sec = {latitude: this.secondUnitLat,
+                     longitude: this.secondUnitLon};
           if (distance(first, sec)>2000) {
             console.log('distance between units exceeds 2km');
             TempStatus = 'GPS Fault';
@@ -248,7 +310,9 @@ module.exports = function Service(CurrentMoment,
             StatusArray[1] = TempStatus;
         };
         };
-        if (stopProcessing == false) {StatusMessage = TempStatus;};
+        if (stopProcessing == false) {
+          StatusMessage = TempStatus;
+        };
       };
       if (this.departed == false && this.kiwirail == false) {
         TempStatus = 'Awaiting Departure';
@@ -287,7 +351,7 @@ module.exports = function Service(CurrentMoment,
         line: this.line,
         kiwirail: this.kiwirail,
         direction: this.direction,
-        linked_unit: this.linked_unit,
+        linked_unit: this.linkedUnit,
         cars: this.cars,
         speed: this.speed,
         location_age: this.location_age,
@@ -314,7 +378,7 @@ module.exports = function Service(CurrentMoment,
         statusMessage: this.statusMessage,
         statusArray: this.statusArray,
         lat: this.lat,
-        long: this.long,
+        long: this.lon,
         meterage: this.meterage,
       };
       return servicelite;
@@ -599,7 +663,7 @@ module.exports = function Service(CurrentMoment,
     let calendar_id = '';
     for (e = 0; e < calendarexceptions.length; e++) {
       if (calendarexceptions[e].date == service_date) {
-        calendar_id = calendarexceptions[e].calendar_id;
+        calendar_id = calendarexceptions[e].calendarId;
         break;
       };
     };
@@ -885,7 +949,7 @@ module.exports = function Service(CurrentMoment,
       var Vlocation = {'latitude': (nextclosest.latitude + XX * ShortestLength), 'longitude': (nextclosest.longitude + YY * ShortestLength)};
       meterage = closest.meterage - distance(Vlocation, closest);
     };
-    return meterage;
+    return Math.floor(meterage);
     };
   function inbetween(position1, position2, position3) {
       // function determines if position 2 is inbetween 1 & 3
@@ -1049,38 +1113,38 @@ module.exports = function Service(CurrentMoment,
     let today = now.getTime() + (seconds * 1000);
     return today;
   };
-  function calendarIDfromDate(DateMoment) {
+  function calendarIdFromDate(DateMoment) {
       // get current caledar_id for timetable search
       let thisdate = DateMoment;
-      let calendar_id = '';
+      let calendarId = '';
       for (e = 0; e < calendarexceptions.length; e++) {
         if (moment(calendarexceptions[e].date) == thisdate) {
-          calendar_id = calendarexceptions[e].calendar_id;
+          calendarId = calendarexceptions[e].calendarId;
           break;
         };
       };
-      if (calendar_id == '') {
+      if (calendarId == '') {
         switch (thisdate.weekday()) {
           case 0:
-            calendar_id = '1';
+            calendarId = '1';
             break;
           case 1:
           case 2:
           case 3:
           case 4:
-            calendar_id = '2345';
+            calendarId = '2345';
             break;
           case 5:
-            calendar_id = '6';
+            calendarId = '6';
             break;
           case 6:
-            calendar_id = '7';
+            calendarId = '7';
             break;
           default:
-            calendar_id = '';
+            calendarId = '';
         };
       };
-      return calendar_id;
+      return calendarId;
   };
   /**
    * Takes a time string in the form HH:mm(:ss)
