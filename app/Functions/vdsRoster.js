@@ -6,17 +6,20 @@ moment().tz('Pacific/Auckland').format();
 
 return new Promise((resolve, reject) => {
   let today = moment().format('YYYY-MM-DD');
-  let rosterQueryString = "SELECT "+
-"[dbo].[v_AgPosition].Matricule AS 'staffId', "+
-"[dbo].[v_AgPosition].CodPosition  AS 'shiftId', "+
-"[dbo].[FiltreGrilleGrpAgentValidite].Nom As 'nameLast', "+
-"[dbo].[FiltreGrilleGrpAgentValidite].Prenom As 'nameFirst' "+
-"FROM [dbo].[v_AgPosition] "+
-"JOIN [dbo].[FiltreGrilleGrpAgentValidite] ON "+
-"[dbo].[v_AgPosition].Matricule = [dbo].[FiltreGrilleGrpAgentValidite].Matricule "+
-"WHERE "+
-"[dbo].[v_AgPosition].Dat = '"+today+"' AND "+
-"[dbo].[v_AgPosition].TypPosition = 'T';"
+  let rosterQueryString = `
+  SELECT
+    [dbo].[v_AgPosition].Matricule AS 'staffId',
+    [dbo].[v_AgPosition].CodPosition  AS 'shiftId',
+    [dbo].[FiltreGrilleGrpAgentValidite].Nom As 'nameLast',
+    [dbo].[FiltreGrilleGrpAgentValidite].Prenom As 'nameFirst'
+  FROM [dbo].[v_AgPosition]
+  JOIN [dbo].[FiltreGrilleGrpAgentValidite] ON
+    [dbo].[v_AgPosition].Matricule = 
+      [dbo].[FiltreGrilleGrpAgentValidite].Matricule
+  WHERE
+    [dbo].[v_AgPosition].Dat = `+today+` AND
+    [dbo].[v_AgPosition].TypPosition = 'T'
+  `;
 
   let sequelize = new Sequelize('VDS_TDW', 'WEBSN', 'TDW@2017', {
     host: 'APAUPVDSSQL01',
