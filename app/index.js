@@ -103,10 +103,10 @@ function getnewgevisjson() {
         if (body == {'metadata': {'outputSpatialReference': 0},
                      'features': []}) {
           console.log('GeVis Vehicles responded empty @'
-                      + moment().format('YYYY-MM-DD HH:mm'));
+                      + moment().format('YYYY-MM-DD HH:mm:ss'));
         } else {
           console.log('GeVis loaded ok @ '
-                      + moment().format('YYYY-MM-DD HH:mm'));
+                      + moment().format('YYYY-MM-DD HH:mm:ss'));
       };
       readresponse(GeVisJSON);
     };
@@ -192,12 +192,14 @@ function readresponse(GeVisJSON) {
   //  get current caledar_id for timetable search
   let calendarId = calendarIDfromDate(currentMoment);
   //  get all timetabled services that are not active
-  let match = false;
+  let alreadyTracking = false;
   let serviceDate = moment().format('YYYYMMDD');
 
   //  cycle through services
   //  find fist and last station Time of services
   for (ts = 0; ts < tripSheet.length; ts++) {
+    let timetabledServiceId = tripSheet[ts].serviceId;
+    alreadyTracking = false;
     if (tripSheet[ts].calendarId == calendarId) {
       for (st = 0; st < stopTimes.length; st++) {
         if (tripSheet[ts].serviceId == stopTimes[st].serviceId) {
@@ -213,37 +215,38 @@ function readresponse(GeVisJSON) {
                 stopTimes[st+1].stationSequence == 0) {
               checkarrives = tfp2m(stopTimes[st].arrives);
 
-              // then check found service within time window
+              // then check found service is within time window
               if (checkdeparts < moment(currentMoment).subtract(1, 'minutes') &&
                   checkarrives > moment(currentMoment).add(5, 'minutes')) {
-                match = false;
                 // then check if already in active service list
                 for (cs = 0; cs < currentServices.length; cs++) {
-                if (tripSheet[ts].serviceId == currentServices[cs].service_id) {
-                  match = true;
+                  let checkingServiceId = currentServices[cs].service_id;
+                  if (timetabledServiceId == checkingServiceId) {
+                    alreadyTracking = true;
+                  };
+                  if (alreadyTracking) break;
                 };
-                };
-                  if (match == false) {
-                    let service = new Service(currentMoment,
-                                              tripSheet[ts].serviceId,
-                                              serviceDate,
-                                              'FROM TIMETABLE',
-                                              '',
-                                              '',
-                                              '',
-                                              '00:00',
-                                              0,
-                                              '',
-                                              '',
-                                              currentRoster);
-                    // look for previous service and mark if still running
-                    for (csa = 0; csa < currentServices.length; csa++) {
+                if (!alreadyTracking) {
+                  let service = new Service(currentMoment,
+                                            tripSheet[ts].serviceId,
+                                            serviceDate,
+                                            'FROM TIMETABLE',
+                                            '',
+                                            '',
+                                            '',
+                                            '00:00',
+                                            0,
+                                            '',
+                                            '',
+                                            currentRoster);
+                  // look for previous service and mark if still running
+                  for (csa = 0; csa < currentServices.length; csa++) {
                     if (currentServices[csa].service_id == service.LastService) {
                       service.statusMessage = 'Previous Service Delayed';
                     }
-                    };
-                    currentServices.push(service.web());
                   };
+                  currentServices.push(service.web());
+                };
               };
             }
           };
@@ -252,6 +255,7 @@ function readresponse(GeVisJSON) {
     }
   };
 }
+};
 /**
  * decides if train meets selection criteria
  * @param {object} train
@@ -377,4 +381,3 @@ app.post('/busCalc', function(request, response) {
 let port = 3000;
 app.listen(port);
 console.log('listening on ' + port);
-
