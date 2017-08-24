@@ -78,7 +78,7 @@ let currentRoster = [];
 let currentMoment;
 
 getnewgevisjson();
-getnewVDSRoster();
+//getnewVDSRoster();
 /**
  * retrieve up to date json from GeVis API
  */
@@ -189,6 +189,7 @@ function readresponse(GeVisJSON) {
                                   currentRoster);
         currentServices.push(service.web());
     };
+  }
   //  get current caledar_id for timetable search
   let calendarId = calendarIDfromDate(currentMoment);
   //  get all timetabled services that are not active
@@ -196,65 +197,42 @@ function readresponse(GeVisJSON) {
   let serviceDate = moment().format('YYYYMMDD');
 
   //  cycle through services
-  //  find fist and last station Time of services
-  for (ts = 0; ts < tripSheet.length; ts++) {
-    let timetabledServiceId = tripSheet[ts].serviceId;
+  let servicesToday = tripSheet.filter((tripSheet) => tripSheet.calendarId == calendarId);
+  for (st = 0; st < servicesToday.length; st++) {
+    let timetabledService = servicesToday[st];
     alreadyTracking = false;
-    if (tripSheet[ts].calendarId == calendarId) {
-      for (st = 0; st < stopTimes.length; st++) {
-        if (tripSheet[ts].serviceId == stopTimes[st].serviceId) {
-          // get start and end time
-          if (stopTimes[st].stationSequence == 0) {
-            checkdeparts = tfp2m(stopTimes[st].departs);
-            checkarrives = '';
-          };
-          // checking if next entry on stopTimes is zero or doesnt exist
-          // this indicates the end of the service
-          if (st+1 < stopTimes.length) {
-            if (stopTimes[st+1] == undefined ||
-                stopTimes[st+1].stationSequence == 0) {
-              checkarrives = tfp2m(stopTimes[st].arrives);
-
-              // then check found service is within time window
-              if (checkdeparts < moment(currentMoment).subtract(1, 'minutes') &&
-                  checkarrives > moment(currentMoment).add(5, 'minutes')) {
-                // then check if already in active service list
-                for (cs = 0; cs < currentServices.length; cs++) {
-                  let checkingServiceId = currentServices[cs].service_id;
-                  if (timetabledServiceId == checkingServiceId) {
-                    alreadyTracking = true;
-                  };
-                  if (alreadyTracking) break;
-                };
-                if (!alreadyTracking) {
-                  let service = new Service(currentMoment,
-                                            tripSheet[ts].serviceId,
-                                            serviceDate,
-                                            'FROM TIMETABLE',
-                                            '',
-                                            '',
-                                            '',
-                                            '00:00',
-                                            0,
-                                            '',
-                                            '',
-                                            currentRoster);
-                  // look for previous service and mark if still running
-                  for (csa = 0; csa < currentServices.length; csa++) {
-                    if (currentServices[csa].service_id == service.LastService) {
-                      service.statusMessage = 'Previous Service Delayed';
-                    }
-                  };
-                  currentServices.push(service.web());
-                };
-              };
+    let serviceTimePoints = stopTimes.filter((stopTimes) => stopTimes.serviceId == timetabledService.serviceId);
+    let serviceDeparts = tfp2m(serviceTimePoints[0].departs);
+    let serviceArrives = tfp2m(serviceTimePoints[serviceTimePoints.length-1].arrives);
+    // find if fits within specified timeband
+    if (serviceDeparts < moment(currentMoment).subtract(1, 'minutes') &&
+        serviceArrives > moment(currentMoment).add(5, 'minutes')) {
+          for (cs = 0; cs < currentServices.length; cs++) {
+            if (currentServices[cs].serviceId == timetabledService.serviceId) {
+              alreadyTracking = true;
             }
+            if (alreadyTracking) break;
           };
-        }
+          if (alreadyTracking == false) {
+            let service = new Service(currentMoment,
+              timetabledService.serviceId,
+              serviceDate,
+              'FROM TIMETABLE',
+              '', '', '',
+              '00:00',
+              0,
+              '', '',
+              currentRoster);
+            // look for previous service and mark if still running
+            for (csa = 0; csa < currentServices.length; csa++) {
+              if (currentServices[csa].serviceId == service.LastService) {
+                service.statusMessage = 'Previous Service Delayed';
+              }
+            };
+            currentServices.push(service.web());
+          }
       };
-    }
   };
-}
 };
 /**
  * decides if train meets selection criteria

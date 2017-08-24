@@ -72,8 +72,8 @@ app.controller('AppController',  ['$scope', 'currentServices', 'berthing', 'stat
       };
       //for service detail bar
       $scope.selectedID = "NONE";
-      $scope.detail = function (service_id) {
-        $scope.selectedID = service_id;
+      $scope.detail = function (serviceId) {
+        $scope.selectedID = serviceId;
       };
 
 

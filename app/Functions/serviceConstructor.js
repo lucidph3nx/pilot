@@ -347,7 +347,7 @@ module.exports = function Service(CurrentMoment,
     this.web = function() {
       // generate slim version of service for transmition over web
       let servicelite = {
-        service_id: this.serviceId,
+        serviceId: this.serviceId,
         line: this.line,
         kiwirail: this.kiwirail,
         direction: this.direction,

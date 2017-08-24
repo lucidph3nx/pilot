@@ -22,7 +22,7 @@
           </thead>
           <tbody>
           <tr class="varianceTableRow" ng-repeat="service in currentServices | orderBy:['kiwirail',getSort(views)]:sortReverse | filter: { direction: views }">
-            <td id="trainNumberResults" class="trainnumber" ng-click="toggleRight(); detail(service.service_id)" ng-class="{
+            <td id="trainNumberResults" class="trainnumber" ng-click="toggleRight(); detail(service.serviceId)" ng-class="{
                                                   'early' : service.statusMessage == 'Running Early',
                                                   'okay' : service.statusMessage == 'Running Ok',
                                                   'late' : service.statusMessage == 'Running Late',
@@ -36,7 +36,7 @@
                                                   'storageroad' : service.statusMessage == 'In Storage Road' || service.statusMessage == 'In Turn Back Road',
                                                   'prevdelayed' : service.statusMessage == 'Previous Service Delayed',
                                                   'arriving' : service.statusMessage == 'Arriving',
-                                                  }">{{ service.service_id }}</td>
+                                                  }">{{ service.serviceId }}</td>
             <td id="carsResults" class="columncenter varianceNormal">{{ service.cars }}</td>
             <!--<td id="lineResults" class="varianceNormal">{{ service.line }}</td>
             <td id="vehicleIDResults" class="varianceNormal" ng-class="{
