@@ -158,7 +158,11 @@ module.exports = function Service(CurrentMoment,
   this.LENextTurnaround = getTurnaroundFrom2Times(this.arrives, this.LENextServiceTime);
   this.TMNextService = getStaffNextService(this.serviceId, this.calendarId, 'TM');
   this.TMNextServiceTime = getdepartsfromtimetable(this.serviceDate, this.TMNextService, this.calendarId);
-  if (this.TMNextServiceTime == '') {this.TMNextServiceTimeString = '';} else {this.TMNextServiceTimeString = moment(this.TMNextServiceTime).format('HH:mm');};
+  if (this.TMNextServiceTime == '') {
+    this.TMNextServiceTimeString = '';
+  } else {
+    this.TMNextServiceTimeString = moment(this.TMNextServiceTime).format('HH:mm');
+  };
   this.TMNextTurnaround = getTurnaroundFrom2Times(this.arrives, this.TMNextServiceTime);
   this.trainManagerShift = getStaffShift(this.serviceId, this.calendarId, 'TM');
   this.locomotiveEngineerShift = getStaffShift(this.serviceId, this.calendarId, 'LE');
@@ -334,7 +338,9 @@ module.exports = function Service(CurrentMoment,
           TempStatus = 'Stopped between stations';
           StatusArray[2] = TempStatus;
       };
-      if (StatusMessage == '' && stopProcessing == false) {StatusMessage = TempStatus;};
+      if (StatusMessage == '' && stopProcessing == false) {
+        StatusMessage = TempStatus;
+      };
       stopProcessing = true;
     };
       if (StatusMessage == 0 || StatusMessage == false || typeof StatusMessage == 'undefined') {
@@ -428,6 +434,13 @@ module.exports = function Service(CurrentMoment,
     return journey;
     };
   };
+  /**
+   * Looks up timetable for departure time
+   * @param {object} serviceDate - Moment Object
+   * @param {string} serviceId
+   * @param {string} calendarId - 1/2345/6/7
+   * @return {object} - departure time moment object
+   */
   function getdepartsfromtimetable(serviceDate, serviceId, calendarId) {
     let departs;
     for (st = 0; st < stopTimes.length; st++) {
@@ -452,10 +465,17 @@ module.exports = function Service(CurrentMoment,
     return departs;
     };
   };
-  function getdepartedornot(CurrentTime, departuretime) {
-    if (CurrentTime > departuretime) {
+  /**
+   * finds out if service
+   * has departed or not
+   * @param {object} CurrentTime - moment Object
+   * @param {object} departureTime - moment Object
+   * @return {boolean}
+   */
+  function getdepartedornot(CurrentTime, departureTime) {
+    if (CurrentTime > departureTime) {
       return true;
-    } else if (CurrentTime < departuretime) {
+    } else if (CurrentTime < departureTime) {
       return false;
     }
   }
@@ -486,18 +506,18 @@ module.exports = function Service(CurrentMoment,
     return arrives;
     };
   };
-  function getorigin(service_id, description, kiwirailboolean, calendar_id) {
+  function getorigin(serviceId, description, kiwirailBoolean, calendarId) {
     let origin;
     for (st = 0; st < stopTimes.length; st++) {
       // console.log (ts + " & " + st);
-      if (service_id == stopTimes[st].serviceId) {
+      if (serviceId == stopTimes[st].serviceId) {
         // get start and end time
         if (stopTimes[st].stationSequence == 0) {
           origin = stopTimes[st].station;
           break;
         };
       }};
-    if (kiwirailboolean && (origin == '' || origin == 0 || typeof origin == 'undefined')) {
+    if (kiwirailBoolean && (origin == '' || origin == 0 || typeof origin == 'undefined')) {
       description = description.toUpperCase();
       if (description.substring(0, 8) == 'AUCKLAND') {
         origin = 'AUCK';
@@ -525,18 +545,18 @@ module.exports = function Service(CurrentMoment,
     return origin;
     };
   };
-  function getdestination(service_id, description, kiwirailboolean, calendar_id) {
+  function getdestination(serviceId, description, kiwirailBoolean, calendarId) {
     let destination;
     for (st = 0; st < stopTimes.length; st++) {
       // console.log (ts + " & " + st);
-      if (stopTimes[st].serviceId == service_id) {
+      if (stopTimes[st].serviceId == serviceId) {
         // get start and end time
         if (stopTimes[st+1] !== undefined && stopTimes[st+1].stationSequence == 0) {
           destination = stopTimes[st].station;
           break;
         };
       }};
-    if (kiwirailboolean && (destination == '' || destination == 0 || typeof destination == 'undefined')) {
+    if (kiwirailBoolean && (destination == '' || destination == 0 || typeof destination == 'undefined')) {
 
       description = description.toUpperCase();
       description = description.split('-');
@@ -604,10 +624,10 @@ module.exports = function Service(CurrentMoment,
     };
     return NextService;
   };
-  function getUnitLastService(service_id, calendar_id) {
+  function getUnitLastService(serviceId, calendarId) {
     let LastService;
     for (s = 0; s <unitRoster.length; s++) {
-      if (unitRoster[s].calendarId == calendar_id && unitRoster[s].serviceId == (service_id)) {
+      if (unitRoster[s].calendarId == calendarId && unitRoster[s].serviceId == (serviceId)) {
           if (unitRoster[s-1] !== undefined && unitRoster[s].journeyId == unitRoster[s-1].journeyId) {
             LastService = unitRoster[s-1].serviceId;
           } else {
@@ -635,10 +655,10 @@ module.exports = function Service(CurrentMoment,
     };
     return staffShift;
   };
-  function getStaffNextService(service_id, calendar_id, work_type) {
+  function getStaffNextService(serviceId, calendarId, workType) {
     let NextService;
     for (s = 0; s <masterRoster.length; s++) {
-      if (masterRoster[s].calendarId == calendar_id && masterRoster[s].serviceID == (service_id) && masterRoster[s].workType == (work_type)) {
+      if (masterRoster[s].calendarId == calendarId && masterRoster[s].serviceID == (serviceId) && masterRoster[s].workType == (workType)) {
           if (masterRoster[s+1] !== undefined && masterRoster[s].shiftId == masterRoster[s+1].shiftId) {
             NextService = masterRoster[s+1].serviceID;
           } else {
@@ -657,63 +677,30 @@ module.exports = function Service(CurrentMoment,
 
     return Math.floor(Turnaround);
   }
-  // logical functions
-  function getcalendaridfromservicedate(service_date) {
-    let thisdate = new Date(service_date.substring(0, 4), service_date.substring(4, 6)-1, service_date.substring(6, 8));
-    let calendar_id = '';
-    for (e = 0; e < calendarexceptions.length; e++) {
-      if (calendarexceptions[e].date == service_date) {
-        calendar_id = calendarexceptions[e].calendarId;
-        break;
-      };
-    };
-    if (calendar_id == '') {
-      switch (thisdate.getDay()) {
-        case 0:
-          calendar_id = '1';
-          break;
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-          calendar_id = '2345';
-          break;
-        case 5:
-          calendar_id = '6';
-          break;
-        case 6:
-          calendar_id = '7';
-          break;
-        default:
-          calendar_id = '';
-      };
-    };
-    return calendar_id;
-  };
-  function getlinefromserviceid(service_id, service_description) {
+  function getlinefromserviceid(serviceId, serviceDescription) {
       let numcharId = '';
       let line = [];
       let freightdetect;
-      if (typeof service_description !== 'undefined') {
-        if (service_description.includes('FREIGHT')) {
+      if (typeof serviceDescription !== 'undefined') {
+        if (serviceDescription.includes('FREIGHT')) {
           freightdetect = true;
         };
     };
       // looks for service id's with a random letter on the end
       // treat as a 3 digit
-      for (p = 0; p < service_id.length; p++) {
-          if (isNaN(service_id[p])) {
+      for (p = 0; p < serviceId.length; p++) {
+          if (isNaN(serviceId[p])) {
             numcharId = numcharId + 'C';
           } else {
             numcharId = numcharId + 'N';
           };
       };
       if (numcharId === 'NNNC') {
-        service_id = service_id.substring(0, 3);
+        serviceId = serviceId.substring(0, 3);
       }
 
-      if (service_id.length == 4) {
-        switch (service_id.substring(0, 2)) {
+      if (serviceId.length == 4) {
+        switch (serviceId.substring(0, 2)) {
           case '12':
             line = ['PNL', true];
             break;
@@ -763,9 +750,8 @@ module.exports = function Service(CurrentMoment,
           default:
             line = '';
         };
-      }
-      else if (service_id.length == 3) {
-        switch (service_id.substring(0, 1)) {
+      } else if (serviceId.length == 3) {
+        switch (serviceId.substring(0, 1)) {
           case '2':
             line = ['KPL', true];
             break;
@@ -806,6 +792,12 @@ module.exports = function Service(CurrentMoment,
 
       return line;
   };
+  /**
+   * Take a service Id and extrapolates
+   * the direction UP/DOWN
+   * @param {string} serviceId 
+   * @return {string} 'UP' or 'DOWN'
+   */
   function getdirectionfromserviceid(serviceId) {
     let numcharId = '';
     // remove characters for odd even purposes
@@ -839,8 +831,14 @@ module.exports = function Service(CurrentMoment,
     } else {
       return '';
     }
-
   };
+
+  /**
+   * Takes a line and coverts it to
+   * the corresponding KiwiRail line
+   * @param {string} line 
+   * @return {string} - KiwiRail Line
+   */
   function lineToKiwiRailLine(line) {
     let KRLine;
     switch (line) {
@@ -863,16 +861,17 @@ module.exports = function Service(CurrentMoment,
     }
     return KRLine;
   };
-  function gevisvariancefix(schedule_variance) {
+
+  function gevisvariancefix(scheduleVariance) {
     let fixedvariance;
-    if (schedule_variance < 0) {
-      fixedvariance = Math.abs(schedule_variance);
+    if (scheduleVariance < 0) {
+      fixedvariance = Math.abs(scheduleVariance);
     };
-    if (schedule_variance == 0) {
+    if (scheduleVariance == 0) {
       fixedvariance = 0;
     };
-    if (schedule_variance > 0) {
-      fixedvariance = 0 - schedule_variance;
+    if (scheduleVariance > 0) {
+      fixedvariance = 0 - scheduleVariance;
     };
     return fixedvariance;
   };
@@ -895,19 +894,19 @@ module.exports = function Service(CurrentMoment,
     let point2 = locations[1];
     let closest;
     let nextclosest;
-    let point1_distance = distance(point1, position.coords);
-    let point2_distance = distance(point2, position.coords);
+    let point1Distance = distance(point1, position.coords);
+    let point2Distance = distance(point2, position.coords);
 
-    for (i=1;i<locations.length;i++) {
+    for (i=1; i<locations.length; i++) {
         // cycle component
         // console.log(inbetween(point2,position.coords,point1));
-        if (distance(locations[i], position.coords) < point1_distance) {
+        if (distance(locations[i], position.coords) < point1Distance) {
           // if((inbetween(point2,position.coords,point1) == false)){console.log("not inbetween");};
             // console.log("itterated " + point1.order);
              point2 = point1;
-             point2_distance = point1_distance;
+             point2Distance = point1Distance;
              point1 = locations[i];
-             point1_distance = distance(locations[i], position.coords);
+             point1Distance = distance(locations[i], position.coords);
 
         // stopping component
         } else if (inbetween(point2, position.coords, point1)) {
@@ -915,9 +914,9 @@ module.exports = function Service(CurrentMoment,
         } else {
           // keep on cycling
           point2 = point1;
-          point2_distance = point1_distance;
+          point2Distance = point1Distance;
           point1 = locations[i];
-          point1_distance = distance(locations[i], position.coords);
+          point1Distance = distance(locations[i], position.coords);
         };
       };// (distance(locations[i],position.coords)>closest_distance && distance(locations[i],position.coords)<nextclosest_distance && (Math.abs(bearing(position.coords,closest) - bearing(position.coords,nextclosest)) >180)){
 
@@ -936,17 +935,17 @@ module.exports = function Service(CurrentMoment,
     // checks the order (direction) of the points selected
     if (closest.order < nextclosest.order) {
       // beyond closest meterage
-      var XX = nextclosest.latitude - closest.latitude;
-      var YY = nextclosest.longitude - closest.longitude;
-      var ShortestLength = ((XX * (position.coords.latitude - closest.latitude)) + (YY * (position.coords.longitude - closest.longitude))) / ((XX * XX) + (YY * YY));
-      var Vlocation = {'latitude': (closest.latitude + XX * ShortestLength), 'longitude': (closest.longitude + YY * ShortestLength)};
+      let XX = nextclosest.latitude - closest.latitude;
+      let YY = nextclosest.longitude - closest.longitude;
+      let ShortestLength = ((XX * (position.coords.latitude - closest.latitude)) + (YY * (position.coords.longitude - closest.longitude))) / ((XX * XX) + (YY * YY));
+      let Vlocation = {'latitude': (closest.latitude + XX * ShortestLength), 'longitude': (closest.longitude + YY * ShortestLength)};
       meterage = closest.meterage + distance(Vlocation, closest);
     } else {
       // behind closest meterage
-      var XX = closest.latitude - nextclosest.latitude;
-      var YY = closest.longitude - nextclosest.longitude;
-      var ShortestLength = ((XX * (position.coords.latitude - nextclosest.latitude)) + (YY * (position.coords.longitude - nextclosest.longitude))) / ((XX * XX) + (YY * YY));
-      var Vlocation = {'latitude': (nextclosest.latitude + XX * ShortestLength), 'longitude': (nextclosest.longitude + YY * ShortestLength)};
+      let XX = closest.latitude - nextclosest.latitude;
+      let YY = closest.longitude - nextclosest.longitude;
+      let ShortestLength = ((XX * (position.coords.latitude - nextclosest.latitude)) + (YY * (position.coords.longitude - nextclosest.longitude))) / ((XX * XX) + (YY * YY));
+      let Vlocation = {'latitude': (nextclosest.latitude + XX * ShortestLength), 'longitude': (nextclosest.longitude + YY * ShortestLength)};
       meterage = closest.meterage - distance(Vlocation, closest);
     };
     return Math.floor(meterage);
@@ -972,12 +971,10 @@ module.exports = function Service(CurrentMoment,
     let φ2 = lat2 * Math.PI / 180;
     let Δφ = (lat2-lat1) * Math.PI / 180;
     let Δλ = (lon2-lon1) * Math.PI / 180;
-
     let a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
         Math.cos(φ1) * Math.cos(φ2) *
         Math.sin(Δλ/2) * Math.sin(Δλ/2);
     let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
     let d = R * c;
     return d;
   };
@@ -986,95 +983,105 @@ module.exports = function Service(CurrentMoment,
     let lat2=position2.latitude;
     let lon1=position1.longitude;
     let lon2=position2.longitude;
-    let R = 6371000; // radius of earth in metres
     let φ1 = lat1 * Math.PI / 180;
     let φ2 = lat2 * Math.PI / 180;
     let λ1 = lon1 * Math.PI / 180;
     let λ2 = lon2 * Math.PI / 180;
-
     let y = Math.sin(λ2-λ1) * Math.cos(φ2);
     let x = Math.cos(φ1)*Math.sin(φ2) -
             Math.sin(φ1)*Math.cos(φ2)*Math.cos(λ2-λ1);
     let brng = Math.atan2(y, x) * 180 / Math.PI;
-
     return brng;
   };
-  // high level functions
+
+  /** looks at location on line and works out
+   *  given the direction,
+   *  what the previous station would be
+   * @param {number} lat - Lattitude
+   * @param {number} lon - Longitude
+   * @param {number} meterage - meters from origin
+   * @param {string} KRLine - the KiwiRail line
+   * @param {string} direction - 'UP' or 'DOWN'
+   * @return {string} - 4 char station ID
+   */
   function getlaststation(lat, lon, meterage, KRLine, direction) {
     // code to check and determine if at stations
-  	let thisid, thisnorth, thiswest, thissouth, thiseast;
-    let laststation = ['', false];
+    let thisId;
+    let thisNorth;
+    let thisWest;
+    let thisSouth;
+    let thisEast;
+    let lastStation = ['', false];
 
     // checks lat long for current stations first
     for (j = 0; j < StationGeoboundaries.length; j++) {
-      thisid = StationGeoboundaries[j].station_id;
-      thisnorth = StationGeoboundaries[j].north;
-      thiswest = StationGeoboundaries[j].west;
-      thissouth = StationGeoboundaries[j].south;
-      thiseast = StationGeoboundaries[j].east;
+      thisId = StationGeoboundaries[j].station_id;
+      thisNorth = StationGeoboundaries[j].north;
+      thisWest = StationGeoboundaries[j].west;
+      thisSouth = StationGeoboundaries[j].south;
+      thisEast = StationGeoboundaries[j].east;
 
-      if (lon > thiswest & lon < thiseast & lat < thisnorth & lat > thissouth) {
-        laststation = [thisid, true];
+      if (lon > thisWest & lon < thisEast & lat < thisNorth & lat > thisSouth) {
+        lastStation = [thisId, true];
         break;
-      }};
+      }
+    };
     // works out last station based on line, direction and meterage
-    if (!laststation[1]) {
+    if (!lastStation[1]) {
       for (m = 0; m < StationMeterage.length; m++) {
         if (StationMeterage[m].KRLine == KRLine) {
           if (direction == 'UP') {
             if (StationMeterage[m-1] !== undefined && StationMeterage[m].meterage >= meterage) {
-              laststation = [StationMeterage[m-1].station_id, false];
+              lastStation = [StationMeterage[m-1].station_id, false];
               break;
             }
           };
           if (direction == 'DOWN') {
             if (StationMeterage[m].meterage >= meterage) {
-              laststation = [StationMeterage[m].station_id, false];
+              lastStation = [StationMeterage[m].station_id, false];
               break;
             }
           };
         };
       }
     };
-    return laststation;
+    return lastStation;
     };
-  function getPrevStnDetails(service_date, meterage, direction, service_id) {
+  function getPrevStnDetails(serviceDate, meterage, direction, serviceId) {
     let prevstation;
     let prevtime;
     let prevmeterage;
     for (st = 0; st < stopTimes.length; st++) {
       if (direction == 'UP') {
-        if (stopTimes[st].serviceId == service_id && getMeterageOfStation(stopTimes[st].station) < meterage) {
+        if (stopTimes[st].serviceId == serviceId && getMeterageOfStation(stopTimes[st].station) < meterage) {
           prevstation = stopTimes[st].station;
           prevtime = twp2m(stopTimes[st].departs);
           prevmeterage = getMeterageOfStation(stopTimes[st].station);
         };
     } else if (direction == 'DOWN') {
-          if (stopTimes[st].serviceId == service_id && getMeterageOfStation(stopTimes[st].station) > meterage) {
+          if (stopTimes[st].serviceId == serviceId && getMeterageOfStation(stopTimes[st].station) > meterage) {
               prevstation = stopTimes[st].station;
               prevtime = twp2m(stopTimes[st].departs);
               prevmeterage = getMeterageOfStation(stopTimes[st].station);
           }
-      }}
-        if (prevtime == undefined) {
-          // console.log(prevstation + ' ' + service_id);
-        }
-          return [prevtime, prevmeterage, prevstation];
-        };
-  function getNextStnDetails(service_date, meterage, direction, service_id) {
+      }
+    }
+    return [prevtime, prevmeterage, prevstation];
+  };
+  function getNextStnDetails(serviceDate, meterage, direction, serviceId) {
     let nextstation;
     let nexttime;
     let nextmeterage;
     for (st = 0; st < stopTimes.length; st++) {
       if (direction == 'UP') {
-          if (stopTimes[st].serviceId == service_id && getMeterageOfStation(stopTimes[st].station) > meterage) {
+          if (stopTimes[st].serviceId == serviceId && getMeterageOfStation(stopTimes[st].station) > meterage) {
               nextstation = stopTimes[st].station;
               nexttime = twp2m(stopTimes[st].departs);
               nextmeterage = getMeterageOfStation(stopTimes[st].station);
               break;
           }
       } else {
-        if (stopTimes[st].serviceId == service_id && getMeterageOfStation(stopTimes[st].station) < meterage) {
+        if (stopTimes[st].serviceId == serviceId && getMeterageOfStation(stopTimes[st].station) < meterage) {
             nextstation = stopTimes[st].station;
             nexttime = twp2m(stopTimes[st].departs);
             nextmeterage = getMeterageOfStation(stopTimes[st].station);
@@ -1083,17 +1090,17 @@ module.exports = function Service(CurrentMoment,
       }}
         return [nexttime, nextmeterage, nextstation];
       };
-  function getMeterageOfStation(station_id) {
+  function getMeterageOfStation(stationId) {
     for (sm = 0; sm < StationMeterage.length; sm++) {
-      if (station_id == StationMeterage[sm].station_id) {
+      if (stationId == StationMeterage[sm].station_id) {
         return StationMeterage[sm].meterage;
       }}
     };
-  function getScheduleVariance(kiwirail, currenttime, service_date, meterage, prevstntime, nextstntime, prevstnmeterage, nextstnmeterage, location_age_seconds) {
-    if (kiwirail == false && prevstntime !== undefined && nextstntime !== undefined && prevstnmeterage !== undefined) {
-      let ExpectedTime = moment(prevstntime + (nextstntime-prevstntime) * ((meterage - prevstnmeterage) / (nextstnmeterage - prevstnmeterage)));
-      let CurrentDelay = moment(currenttime.diff(ExpectedTime));
-      CurrentDelay.subtract(location_age_seconds, 'seconds');
+  function getScheduleVariance(kiwirailBoolean, currentTime, serviceDate, meterage, prevStationTime, nextStationTime, prevStationMeterage, nextStationMeterage, locationAgeSeconds) {
+    if (kiwirailBoolean == false && prevStationTime !== undefined && nextStationTime !== undefined && prevStationMeterage !== undefined) {
+      let ExpectedTime = moment(prevStationTime + (nextStationTime-prevStationTime) * ((meterage - prevStationMeterage) / (nextStationMeterage - prevStationMeterage)));
+      let CurrentDelay = moment(currentTime.diff(ExpectedTime));
+      CurrentDelay.subtract(locationAgeSeconds, 'seconds');
       CurrentDelay = (CurrentDelay /60000);
       return [CurrentDelay, minTommss(CurrentDelay)];
     } else {
@@ -1107,12 +1114,6 @@ module.exports = function Service(CurrentMoment,
    let sec = Math.floor((Math.abs(minutes) * 60) % 60);
    return sign + (min < 10 ? '0' : '') + min + ':' + (sec < 10 ? '0' : '') + sec;
   }
-  function getUTCTodayfromTimeDate(thistime, thisdate) {
-    let seconds = parseInt(thistime.split(':')[0])*60*60 + (parseInt(thistime.split(':')[1])*60);
-    let now = new Date(thisdate.substring(0, 4), (thisdate.substring(4, 6)-1), thisdate.substring(6, 8));
-    let today = now.getTime() + (seconds * 1000);
-    return today;
-  };
   function calendarIdFromDate(DateMoment) {
       // get current caledar_id for timetable search
       let thisdate = DateMoment;
