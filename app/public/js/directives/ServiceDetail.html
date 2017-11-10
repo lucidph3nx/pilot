@@ -30,14 +30,14 @@
         </table>
         <p></p>
         <h4>Locomotive Engineer</h4>
-        <p>{{ service.LE }}</p>
+        <p ng-click="showDayRoster($event, service.LEShift)">{{ service.LE }} ({{ service.LEShift }})</p>
         <table class="servicedetailtable">
           <tr><td>Next Service</td><td>{{ service.LENextService }}</td></tr>
           <tr><td>Next Time</td><td>{{ service.LENextServiceTime }}</td></tr>
         </table>
         <p></p>
         <h4>Train Manager</h4>
-        <p>{{ service.TM }}</p>
+        <p ng-click="showDayRoster($event, service.TMShift)">{{ service.TM }} ({{ service.TMShift }})</p>
         <table class="servicedetailtable">
           <tr><td>Next Service</td><td>{{ service.TMNextService }}</td></tr>
           <tr><td>Next Time</td><td>{{ service.TMNextServiceTime }}</td></tr>

@@ -4,7 +4,6 @@ moment().tz('Pacific/Auckland').format();
 let StationGeoboundaries = require('../Data/StationGeoboundaries');
 let StationMeterage = require('../Data/StationMeterage');
 let lineshapes = require('../Data/lineshapes');
-let masterRoster = require('../Data/masterRoster');
 let calendarexceptions = require('../Data/calendarexceptions');
 let stopTimes = require('../Data/stopTimes');
 let unitRoster = require('../Data/unitRoster');
@@ -144,9 +143,7 @@ module.exports = function Service(CurrentMoment,
   };
   this.NextTurnaround = getTurnaroundFrom2Times(this.arrives, this.NextTime);
   // staff next service details
-  this.LENextService = getStaffNextService(this.serviceId,
-                                           this.calendarId,
-                                           'LE');
+  this.LENextService = getStaffNextServiceFromVDSRoster(this.serviceId, currentRoster, 'LE');
   this.LENextServiceTime = getdepartsfromtimetable(this.serviceDate,
                                                    this.LENextService,
                                                    this.calendarId);
@@ -156,7 +153,7 @@ module.exports = function Service(CurrentMoment,
     this.LENextServiceTimeString = moment(this.LENextServiceTime).format('HH:mm');
   };
   this.LENextTurnaround = getTurnaroundFrom2Times(this.arrives, this.LENextServiceTime);
-  this.TMNextService = getStaffNextService(this.serviceId, this.calendarId, 'TM');
+  this.TMNextService = getStaffNextServiceFromVDSRoster(this.serviceId, currentRoster, 'TM');
   this.TMNextServiceTime = getdepartsfromtimetable(this.serviceDate, this.TMNextService, this.calendarId);
   if (this.TMNextServiceTime == '') {
     this.TMNextServiceTimeString = '';
@@ -164,10 +161,10 @@ module.exports = function Service(CurrentMoment,
     this.TMNextServiceTimeString = moment(this.TMNextServiceTime).format('HH:mm');
   };
   this.TMNextTurnaround = getTurnaroundFrom2Times(this.arrives, this.TMNextServiceTime);
-  this.trainManagerShift = getStaffShift(this.serviceId, this.calendarId, 'TM');
-  this.locomotiveEngineerShift = getStaffShift(this.serviceId, this.calendarId, 'LE');
-  this.trainManager = getStaffFromVDSRoster(this.trainManagerShift, currentRoster);
-  this.locomotiveEngineer = getStaffFromVDSRoster(this.locomotiveEngineerShift, currentRoster);
+  this.trainManagerShift = getStaffShiftFromVDSRoster(this.serviceId, currentRoster, 'TM');
+  this.locomotiveEngineerShift = getStaffShiftFromVDSRoster(this.serviceId, currentRoster, 'LE');
+  this.trainManager = getStaffFromVDSRoster(this.serviceId, currentRoster, 'TM');
+  this.locomotiveEngineer = getStaffFromVDSRoster(this.serviceId, currentRoster, 'LE');
   // pax count estimation
   this.passengerEstimation = getPaxAtStation(this.calendarId, this.serviceId, this.line, this.prevTimedStation, this.direction);
 
@@ -375,9 +372,11 @@ module.exports = function Service(CurrentMoment,
         NextService: this.NextService,
         NextTime: this.NextTimeString,
         LE: this.locomotiveEngineer,
-        LENextService: this.LENextService,
+        LEShift: this.locomotiveEngineerShift,
+        LENextService: this.LENextService, 
         LENextServiceTime: this.LENextServiceTimeString,
         TM: this.trainManager,
+        TMShift: this.trainManagerShift,
         TMNextService: this.TMNextService,
         TMNextServiceTime: this.TMNextServiceTimeString,
         passengerEstimation: this.passengerEstimation,
@@ -589,23 +588,72 @@ module.exports = function Service(CurrentMoment,
   /**
    * searches a current roster object
    * returns actual staff names
-   * @param {string} shiftId
+   * @param {string} serviceId
    * @param {array} currentRoster
+   * @param {string} workType
    * @return {string}
    */
-  function getStaffFromVDSRoster(shiftId, currentRoster) {
+  function getStaffFromVDSRoster(serviceId, currentRoster, workType) {
     let staff = '';
     if (currentRoster == undefined || currentRoster.length == 0) {
       return staff;
     };
     for (s = 0; s < currentRoster.length; s++) {
-      if (currentRoster[s].shiftId == shiftId) {
+      if (currentRoster[s].dutyName == serviceId && currentRoster[s].shiftType == workType) {
         staff = currentRoster[s].staffName;
       };
     };
     return staff;
   };
-
+  /**
+   * searches a current roster object
+   * returns actual staff names
+   * @param {string} serviceId
+   * @param {array} currentRoster
+   * @param {string} workType
+   * @return {string}
+   */
+  function getStaffShiftFromVDSRoster(serviceId, currentRoster, workType) {
+    let shift = '';
+    if (currentRoster == undefined || currentRoster.length == 0) {
+      return shift;
+    };
+    for (s = 0; s < currentRoster.length; s++) {
+      if (currentRoster[s].dutyName == serviceId && currentRoster[s].shiftType == workType) {
+        shift = currentRoster[s].shiftId;
+      };
+    };
+    return shift;
+  };
+    /**
+   * searches a current roster object
+   * returns actual staff names
+   * @param {string} serviceId
+   * @param {array} currentRoster
+   * @param {string} workType
+   * @return {string}
+   */
+  function getStaffNextServiceFromVDSRoster(serviceId, currentRoster, workType) {
+    let nextService = '';
+    let thisShiftId = '';
+    let serviceFound = false;
+    if (currentRoster == undefined || currentRoster.length == 0) {
+      return nextService;
+    };
+    for (s = 0; s < currentRoster.length; s++) {
+      if (serviceFound && nextService !== '') break;
+      if (serviceFound && thisShiftId == currentRoster[s].shiftId && currentRoster[s].dutyType.substring(0, 4) == 'TRIP') {
+        nextService = currentRoster[s].dutyName;
+      } else if (serviceFound && thisShiftId == currentRoster[s].shiftId && currentRoster[s].dutyType == 'SOF') {
+        nextService = currentRoster[s].dutyName;
+      };
+      if (!serviceFound && currentRoster[s].dutyName == serviceId && currentRoster[s].shiftType == workType) {
+        serviceFound = true;
+        thisShiftId = currentRoster[s].shiftId;
+      };
+    };
+    return nextService;
+  };
 
   function getUnitNextService(serviceId, calendarId) {
     // trying to solve the 5 min to midnight error
@@ -636,37 +684,6 @@ module.exports = function Service(CurrentMoment,
       };
     };
     return LastService;
-  };
-    /**
-     * Takes some details and gets the shiftID from roster
-     * @param {string} serviceId 
-     * @param {string} calendarId 
-     * @param {string} workType - LE/TM/whatever
-     * @return {string} - shiftID
-     */
-    function getStaffShift(serviceId, calendarId, workType) {
-    let staffShift = '';
-    for (s = 0; s <masterRoster.length; s++) {
-      if (masterRoster[s].calendarId == calendarId &&
-        masterRoster[s].serviceID == (serviceId) &&
-        masterRoster[s].workType == (workType)) {
-            staffShift = masterRoster[s].shiftId;
-      };
-    };
-    return staffShift;
-  };
-  function getStaffNextService(serviceId, calendarId, workType) {
-    let NextService;
-    for (s = 0; s <masterRoster.length; s++) {
-      if (masterRoster[s].calendarId == calendarId && masterRoster[s].serviceID == (serviceId) && masterRoster[s].workType == (workType)) {
-          if (masterRoster[s+1] !== undefined && masterRoster[s].shiftId == masterRoster[s+1].shiftId) {
-            NextService = masterRoster[s+1].serviceID;
-          } else {
-            NextService = '';
-          };
-      };
-    };
-    return NextService;
   };
   function getTurnaroundFrom2Times(EndTime, StartTime) {
     if (EndTime == '' || StartTime == '') {return '';}

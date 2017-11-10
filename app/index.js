@@ -22,6 +22,7 @@ let Service = require('./Functions/serviceConstructor');
 // let getPaxAtStation = require('./Functions/passengerEstimation');
 let calculateBusPax = require('./Functions/busEstimation');
 let vdsRoster = require('./Functions/vdsRoster');
+let vdsRosterDuties = require('./Functions/vdsRosterDuties');
 
 
 //  for the users project
@@ -75,10 +76,12 @@ let options = {
 let GeVisJSON;
 let currentServices = [];
 let currentRoster = [];
+let currentRosterDuties = [];
 let currentMoment;
 
 getnewgevisjson();
-//getnewVDSRoster();
+getnewVDSRoster();
+getnewVDSRosterDuties();
 /**
  * retrieve up to date json from GeVis API
  */
@@ -125,7 +128,17 @@ function getnewVDSRoster() {
   vdsRoster().then((response) => {
     currentRoster = response;
   });
-  setTimeout(getnewVDSRoster, 300 * 1000); // every 5 minutes
+  setTimeout(getnewVDSRoster, 900 * 1000); // every 15 minutes
+};
+/**
+ * retrieve up to date staff roster from VDS DB
+ */
+function getnewVDSRosterDuties() {
+  currentRosterDuties = [];
+  vdsRosterDuties().then((response) => {
+    currentRosterDuties = response;
+  });
+  setTimeout(getnewVDSRosterDuties, 900 * 1000); // every 15 minutes
 };
 /**
  * Interprets GeVisJSON
@@ -186,7 +199,7 @@ function readresponse(GeVisJSON) {
                                   varianceKiwirail,
                                   lat,
                                   long,
-                                  currentRoster);
+                                  currentRosterDuties);
         currentServices.push(service.web());
     };
   }
@@ -327,6 +340,29 @@ function calendarIDfromDate(DateMoment) {
     return calendarId;
 };
 
+function getDayRosterFromShift(shiftId) {
+  let dayRoster = [];
+  if (currentRosterDuties == undefined || currentRosterDuties.length == 0) {
+    return dayRoster;
+  };
+  for (s = 0; s < currentRosterDuties.length; s++) {
+    if (currentRosterDuties[s].shiftId == shiftId) {
+      serviceRoster = {
+        shiftId: currentRosterDuties[s].shiftId,
+        shiftType: currentRosterDuties[s].shiftType,
+        staffId: currentRosterDuties[s].staffId,
+        staffName: currentRosterDuties[s].staffName,
+        dutyName: currentRosterDuties[s].dutyName,
+        dutyType: currentRosterDuties[s].dutyType,
+        dutyStartTime: currentRosterDuties[s].dutyStartTime.format('HH:mm'),
+        dutyEndTime: currentRosterDuties[s].dutyEndTime.format('HH:mm'),
+      };
+      dayRoster.push(serviceRoster);
+    };
+  };
+  return dayRoster;
+};
+
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.get('/pilot', (request, response) => {
   response.sendFile(path.join(__dirname, 'index.html'));
@@ -339,9 +375,24 @@ app.get('/CurrentServices', (request, response) => {
   response.end();
 });
 
+app.get('/CurrentRoster', (request, response) => {
+  let Current = {'Time': currentMoment, currentRosterDuties};
+  response.writeHead(200, {'Content-Type': 'application/json'}, {cache: false});
+  response.write(JSON.stringify(Current));
+  response.end();
+});
+
 app.get('/berthing', (request, response) => {
   response.writeHead(200, {'Content-Type': 'application/json'}, {cache: false});
   response.write(JSON.stringify(berthing));
+  response.end();
+});
+
+app.get('/dayRoster', (request, response) => {
+  let requestedShift = request.query.shiftId;
+  let dayRosterResponse = getDayRosterFromShift(requestedShift);
+  response.writeHead(200, {'Content-Type': 'application/json'}, {cache: false});
+  response.write(JSON.stringify(dayRosterResponse));
   response.end();
 });
 
