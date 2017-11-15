@@ -247,7 +247,7 @@ function generateCurrentServices(GeVisJSON) {
               '00:00',
               0,
               '', '',
-              currentRoster);
+              currentRosterDuties);
             // look for previous service and mark if still running
             for (csa = 0; csa < currentServices.length; csa++) {
               if (currentServices[csa].serviceId == service.LastService) {
