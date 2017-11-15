@@ -17,6 +17,17 @@
            </md-item-content>
          </a>
        </md-list-item>
+       <md-list-item  ng-click="show('Units'); toggleLeft()">
+        <a>
+          <md-item-content md-ink-ripple layout="row" layout-align="start center">
+            <div class="inset">
+              <i class="material-icons">train</i>
+            </div>
+            <div class="inset">Units
+            </div>
+          </md-item-content>
+        </a>
+      </md-list-item>
        <md-list-item  ng-click="show('busCalc'); toggleLeft()">
          <a>
            <md-item-content md-ink-ripple layout="row" layout-align="start center">
@@ -36,17 +47,6 @@
                <i class="material-icons">dashboard</i>
              </div>
              <div class="inset">Overview
-             </div>
-           </md-item-content>
-         </a>
-       </md-list-item>
-       <md-list-item  ng-click="show('berthing')">
-         <a>
-           <md-item-content md-ink-ripple layout="row" layout-align="start center">
-             <div class="inset">
-               <i class="material-icons">description</i>
-             </div>
-             <div class="inset">Shunting and Berthing
              </div>
            </md-item-content>
          </a>

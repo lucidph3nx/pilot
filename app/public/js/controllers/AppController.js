@@ -1,18 +1,15 @@
-app.controller('AppController', ['$scope', 'currentServices', 'getRoster', 'berthing', 'stationList', 'busCalcPost', '$interval', '$timeout', '$mdDialog', '$mdSidenav', '$mdpDatePicker', '$mdpTimePicker', function($scope, currentServices, getRoster, berthing, stationList, busCalcPost, $interval, $timeout, $mdDialog, $mdSidenav, $mdpDatePicker, $mdpTimePicker) {
+app.controller('AppController', ['$scope', 'currentServices', 'currentUnitList', 'getRoster', 'berthing', 'stationList', 'busCalcPost', '$interval', '$timeout', '$mdDialog', '$mdSidenav', '$mdpDatePicker', '$mdpTimePicker', function($scope, currentServices, currentUnitList, getRoster, berthing, stationList, busCalcPost, $interval, $timeout, $mdDialog, $mdSidenav, $mdpDatePicker, $mdpTimePicker) {
     let extraseconds;
     let initialtime;
 
-    // initialise
+    // initialise currentServices
       currentServices.async().then(function(d) {
         initialtime = d.data.Time;
         $scope.time = moment(initialtime).format('HH:mm:ss');
         $scope.currentServices = d.data.currentServices;
         extraseconds = 0;
       });
-      berthing.async().then(function(d) {
-        $scope.berthing = d.data;
-      });
-      // refresh data
+      // refresh currentServices data
       $interval(function() {
           currentServices.async().then(function(d) {
             initialtime = d.data.Time;
@@ -21,18 +18,33 @@ app.controller('AppController', ['$scope', 'currentServices', 'getRoster', 'bert
             extraseconds = 0;
           });
       }, 15000);
+    // initialise currentUnitList
+    currentUnitList.async().then(function(d) {
+      $scope.currentUnitList = d.data.currentUnitList;
+    });
+    // refresh currentUnitList data
+    $interval(function() {
+      currentUnitList.async().then(function(d) {
+          $scope.currentUnitList = d.data.currentUnitList;
+        });
+    }, 15000);
       // tick clock
       $interval(function() {
           extraseconds = extraseconds + 1;
           if (extraseconds < 60 ) {
           $scope.time = moment(initialtime).add(extraseconds, 'seconds').format('HH:mm:ss');
-        } else{
+        } else {
           $scope.time = 'Connection Error - Last Update: ' + moment(initialtime).format('HH:mm:ss');
         }
         // itterate through all CurrentServices and add the extra seconds on
         for (service in $scope.currentServices) {
           $scope.currentServices[service].location_age_seconds = $scope.currentServices[service].location_age_seconds + 1;
           $scope.currentServices[service].location_age = pad((Math.floor($scope.currentServices[service].location_age_seconds / 60)), 2) + ':' + pad(($scope.currentServices[service].location_age_seconds % 60), 2);
+        };
+        // itterate through all currentUnitList and add the extra seconds on
+        for (unit in $scope.currentUnitList) {
+          $scope.currentUnitList[unit].positionAgeSeconds = $scope.currentUnitList[unit].positionAgeSeconds + 1;
+          $scope.currentUnitList[unit].positionAge = pad((Math.floor($scope.currentUnitList[unit].positionAgeSeconds / 60)), 2) + ':' + pad(($scope.currentUnitList[unit].positionAgeSeconds % 60), 2);
         };
       }, 1000);
 

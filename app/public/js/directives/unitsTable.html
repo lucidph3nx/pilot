@@ -1,0 +1,28 @@
+<h2>Matangi Unit Status Page</h2>
+<p>This page shows all Matangi Units and their current locations, service ids (where linked) and position Ages</p>
+
+<div id="unitstable" class="container-fluid">
+    <div class="row">
+          <table id="unitstable" class="table table-inverse table-hover" style="padding:10px;">
+            <thead id="resultsTableHeader">
+              <tr id="resultsHeaderRow">
+                <th id="" class="trainnumber">UnitId</th>
+                <th id="">ServiceId</th>
+                <th id="">location</th>
+                <th id="speedHeader">Speed</th>
+                <th id="">Position Age</th>
+              </tr>
+            </thead>
+            <tbody>
+                <tr class="varianceTableRow" ng-repeat="unit in currentUnitList | orderBy:'-positionAgeSeconds'">
+                    <td id="trainNumberResults" class="trainnumber">{{ unit.UnitId }}</td>
+                    <td id="">{{ unit.serviceId }}</td>
+                    <td id="">{{ unit.location }}</td>
+                    <td id="">{{ unit.vehicleSpeed }}</td>
+                    <td id="" ng-class="{
+                        'verylate' : unit.positionAgeSeconds > 1000}">{{ unit.positionAge }}</td>
+                </tr>
+            </tbody>
+          </table>
+    </div>
+</div>

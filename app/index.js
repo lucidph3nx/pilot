@@ -12,8 +12,6 @@ let dummyCurrentServices = require('./Data/DummyCurrentServices');
 let calendarexceptions = require('./Data/calendarexceptions');
 let stopTimes = require('./Data/stopTimes');
 let tripSheet = require('./Data/tripSheet');
-// let unitRoster = require('./Data/unitRoster');
-let berthing = require('./Data/shuntberthingM-F');
 
 //  supporting functions
 let dummydata = require('./Functions/debugMode')[0];
@@ -21,9 +19,7 @@ let dummytime = require('./Functions/debugMode')[1];
 let Service = require('./Functions/serviceConstructor');
 // let getPaxAtStation = require('./Functions/passengerEstimation');
 let calculateBusPax = require('./Functions/busEstimation');
-let vdsRoster = require('./Functions/vdsRoster');
 let vdsRosterDuties = require('./Functions/vdsRosterDuties');
-
 
 //  for the users project
 let logger = require('morgan');
@@ -75,12 +71,11 @@ let options = {
 
 let GeVisJSON;
 let currentServices = [];
-let currentRoster = [];
+let currentUnitList = [];
 let currentRosterDuties = [];
 let currentMoment;
 
 getnewgevisjson();
-getnewVDSRoster();
 getnewVDSRosterDuties();
 /**
  * retrieve up to date json from GeVis API
@@ -111,7 +106,8 @@ function getnewgevisjson() {
           console.log('GeVis loaded ok @ '
                       + moment().format('YYYY-MM-DD HH:mm:ss'));
       };
-      readresponse(GeVisJSON);
+      generateCurrentServices(GeVisJSON);
+      generateCurrentUnitList(GeVisJSON);
     };
     });
   }).on('error', function(e) {
@@ -119,16 +115,6 @@ function getnewgevisjson() {
   });
 
   setTimeout(getnewgevisjson, 10 * 1000);
-};
-/**
- * retrieve up to date staff roster from VDS DB
- */
-function getnewVDSRoster() {
-  currentRoster = [];
-  vdsRoster().then((response) => {
-    currentRoster = response;
-  });
-  setTimeout(getnewVDSRoster, 900 * 1000); // every 15 minutes
 };
 /**
  * retrieve up to date staff roster from VDS DB
@@ -141,10 +127,36 @@ function getnewVDSRosterDuties() {
   setTimeout(getnewVDSRosterDuties, 900 * 1000); // every 15 minutes
 };
 /**
- * Interprets GeVisJSON
+ * uses currentRosterDuties to generate a list of current ASL periods and their end times
+ * @return {Array} aslReport
+ */
+function getLiveAsReqReport() {
+  asReqReport = [];
+  currentMoment = moment();
+  if (currentRosterDuties == []) {
+    return asReqReport;
+  } else {
+    for (s = 0; s < currentRosterDuties.length; s++) {
+      if (currentRosterDuties[s].dutyName.substring(0, 6) == 'As Req' && currentRosterDuties[s].dutyEndTime >= currentMoment) {
+        asReqEntry = {
+          staffId: currentRosterDuties[s].staffId,
+          staffName: currentRosterDuties[s].staffName,
+          shiftId: currentRosterDuties[s].shiftId,
+          shiftType: currentRosterDuties[s].shiftType,
+          startTime: currentRosterDuties[s].dutyStartTime.format('HH:mm'),
+          endTime: currentRosterDuties[s].dutyEndTime.format('HH:mm'),
+        };
+        asReqReport.push(asReqEntry);
+      };
+    };
+    return asReqReport;
+  };
+};
+/**
+ * Interprets GeVisJSON creates list of all current services
  * @param {object} GeVisJSON - an object from GeVis API
  */
-function readresponse(GeVisJSON) {
+function generateCurrentServices(GeVisJSON) {
   let trains = GeVisJSON.features;
   currentServices = [];
   if (dummydata) {
@@ -248,6 +260,30 @@ function readresponse(GeVisJSON) {
   };
 };
 /**
+ * Interprets GeVisJSON, creates list of Matangi Units
+ * @param {object} GeVisJSON - an object from GeVis API
+ */
+function generateCurrentUnitList(GeVisJSON) {
+  let trains = GeVisJSON.features;
+  currentUnitList = [];
+
+ // itterate through all items in GeVisJSON and use all relevant ones
+ for (gj = 0; gj < trains.length; gj++) {
+  let train = trains[gj].attributes;
+  if (train.EquipDesc.trim() == 'Matangi Power Car') {
+      unit = {
+        UnitId: train.VehicleID,
+        location: train.Latitude + ' ' + train.Longitude,
+        positionAge: train.PositionAge,
+        positionAgeSeconds: parseInt(train.PositionAge.toString().split(':')[0]*60) + parseInt(train.PositionAge.toString().split(':')[1]),
+        vehicleSpeed: train.VehicleSpeed,
+        serviceId: train.TrainID,
+      };
+      currentUnitList.push(unit);
+    };
+  };
+};
+/**
  * decides if train meets selection criteria
  * @param {object} train
  * - a train object from GeVis API
@@ -259,7 +295,7 @@ function meetsTrainSelectionCriteria(train) {
   if (train.TrainID !== '' &&
     train.Longitude > westernBoundary &&
     train.Latitude < northernBoundary &&
-    train.EquipmentDesc !== 'Rail Ferry     ' ) {
+    train.EquipmentDesc.trim() !== 'Rail Ferry' ) {
       return true;
   } else {
     return false;
@@ -375,16 +411,17 @@ app.get('/CurrentServices', (request, response) => {
   response.end();
 });
 
-app.get('/CurrentRoster', (request, response) => {
-  let Current = {'Time': currentMoment, currentRosterDuties};
+app.get('/CurrentUnitList', (request, response) => {
+  let Current = {'Time': currentMoment, currentUnitList};
   response.writeHead(200, {'Content-Type': 'application/json'}, {cache: false});
   response.write(JSON.stringify(Current));
   response.end();
 });
 
-app.get('/berthing', (request, response) => {
+app.get('/CurrentRoster', (request, response) => {
+  let Current = {'Time': currentMoment, currentRosterDuties};
   response.writeHead(200, {'Content-Type': 'application/json'}, {cache: false});
-  response.write(JSON.stringify(berthing));
+  response.write(JSON.stringify(Current));
   response.end();
 });
 
@@ -393,6 +430,13 @@ app.get('/dayRoster', (request, response) => {
   let dayRosterResponse = getDayRosterFromShift(requestedShift);
   response.writeHead(200, {'Content-Type': 'application/json'}, {cache: false});
   response.write(JSON.stringify(dayRosterResponse));
+  response.end();
+});
+
+app.get('/asReqReport', (request, response) => {
+  let asReqResponse = getLiveAsReqReport();
+  response.writeHead(200, {'Content-Type': 'application/json'}, {cache: false});
+  response.write(JSON.stringify(asReqResponse));
   response.end();
 });
 

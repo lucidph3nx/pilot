@@ -25,7 +25,7 @@ module.exports = function Service(CurrentMoment,
                                   locationAge,
                                   varianceKiwirail,
                                   lat, lon,
-                                  currentRoster) {
+                                  currentRosterDuties) {
   this.currenttime = moment(CurrentMoment);
   this.serviceId = serviceId.trim();
   this.serviceDescription = serviceDescription.trim();
@@ -143,7 +143,7 @@ module.exports = function Service(CurrentMoment,
   };
   this.NextTurnaround = getTurnaroundFrom2Times(this.arrives, this.NextTime);
   // staff next service details
-  this.LENextService = getStaffNextServiceFromVDSRoster(this.serviceId, currentRoster, 'LE');
+  this.LENextService = getStaffNextServiceFromVDSRoster(this.serviceId, currentRosterDuties, 'LE');
   this.LENextServiceTime = getdepartsfromtimetable(this.serviceDate,
                                                    this.LENextService,
                                                    this.calendarId);
@@ -153,7 +153,7 @@ module.exports = function Service(CurrentMoment,
     this.LENextServiceTimeString = moment(this.LENextServiceTime).format('HH:mm');
   };
   this.LENextTurnaround = getTurnaroundFrom2Times(this.arrives, this.LENextServiceTime);
-  this.TMNextService = getStaffNextServiceFromVDSRoster(this.serviceId, currentRoster, 'TM');
+  this.TMNextService = getStaffNextServiceFromVDSRoster(this.serviceId, currentRosterDuties, 'TM');
   this.TMNextServiceTime = getdepartsfromtimetable(this.serviceDate, this.TMNextService, this.calendarId);
   if (this.TMNextServiceTime == '') {
     this.TMNextServiceTimeString = '';
@@ -161,10 +161,10 @@ module.exports = function Service(CurrentMoment,
     this.TMNextServiceTimeString = moment(this.TMNextServiceTime).format('HH:mm');
   };
   this.TMNextTurnaround = getTurnaroundFrom2Times(this.arrives, this.TMNextServiceTime);
-  this.trainManagerShift = getStaffShiftFromVDSRoster(this.serviceId, currentRoster, 'TM');
-  this.locomotiveEngineerShift = getStaffShiftFromVDSRoster(this.serviceId, currentRoster, 'LE');
-  this.trainManager = getStaffFromVDSRoster(this.serviceId, currentRoster, 'TM');
-  this.locomotiveEngineer = getStaffFromVDSRoster(this.serviceId, currentRoster, 'LE');
+  this.trainManagerShift = getStaffShiftFromVDSRoster(this.serviceId, currentRosterDuties, 'TM');
+  this.locomotiveEngineerShift = getStaffShiftFromVDSRoster(this.serviceId, currentRosterDuties, 'LE');
+  this.trainManager = getStaffFromVDSRoster(this.serviceId, currentRosterDuties, 'TM');
+  this.locomotiveEngineer = getStaffFromVDSRoster(this.serviceId, currentRosterDuties, 'LE');
   // pax count estimation
   this.passengerEstimation = getPaxAtStation(this.calendarId, this.serviceId, this.line, this.prevTimedStation, this.direction);
 
@@ -589,18 +589,18 @@ module.exports = function Service(CurrentMoment,
    * searches a current roster object
    * returns actual staff names
    * @param {string} serviceId
-   * @param {array} currentRoster
+   * @param {array} currentRosterDuties
    * @param {string} workType
    * @return {string}
    */
-  function getStaffFromVDSRoster(serviceId, currentRoster, workType) {
+  function getStaffFromVDSRoster(serviceId, currentRosterDuties, workType) {
     let staff = '';
-    if (currentRoster == undefined || currentRoster.length == 0) {
+    if (currentRosterDuties == undefined || currentRosterDuties.length == 0) {
       return staff;
     };
-    for (s = 0; s < currentRoster.length; s++) {
-      if (currentRoster[s].dutyName == serviceId && currentRoster[s].shiftType == workType) {
-        staff = currentRoster[s].staffName;
+    for (s = 0; s < currentRosterDuties.length; s++) {
+      if (currentRosterDuties[s].dutyName == serviceId && currentRosterDuties[s].shiftType == workType) {
+        staff = currentRosterDuties[s].staffName;
       };
     };
     return staff;
@@ -609,18 +609,18 @@ module.exports = function Service(CurrentMoment,
    * searches a current roster object
    * returns actual staff names
    * @param {string} serviceId
-   * @param {array} currentRoster
+   * @param {array} currentRosterDuties
    * @param {string} workType
    * @return {string}
    */
-  function getStaffShiftFromVDSRoster(serviceId, currentRoster, workType) {
+  function getStaffShiftFromVDSRoster(serviceId, currentRosterDuties, workType) {
     let shift = '';
-    if (currentRoster == undefined || currentRoster.length == 0) {
+    if (currentRosterDuties == undefined || currentRosterDuties.length == 0) {
       return shift;
     };
-    for (s = 0; s < currentRoster.length; s++) {
-      if (currentRoster[s].dutyName == serviceId && currentRoster[s].shiftType == workType) {
-        shift = currentRoster[s].shiftId;
+    for (s = 0; s < currentRosterDuties.length; s++) {
+      if (currentRosterDuties[s].dutyName == serviceId && currentRosterDuties[s].shiftType == workType) {
+        shift = currentRosterDuties[s].shiftId;
       };
     };
     return shift;
@@ -629,27 +629,27 @@ module.exports = function Service(CurrentMoment,
    * searches a current roster object
    * returns actual staff names
    * @param {string} serviceId
-   * @param {array} currentRoster
+   * @param {array} currentRosterDuties
    * @param {string} workType
    * @return {string}
    */
-  function getStaffNextServiceFromVDSRoster(serviceId, currentRoster, workType) {
+  function getStaffNextServiceFromVDSRoster(serviceId, currentRosterDuties, workType) {
     let nextService = '';
     let thisShiftId = '';
     let serviceFound = false;
-    if (currentRoster == undefined || currentRoster.length == 0) {
+    if (currentRosterDuties == undefined || currentRosterDuties.length == 0) {
       return nextService;
     };
-    for (s = 0; s < currentRoster.length; s++) {
+    for (s = 0; s < currentRosterDuties.length; s++) {
       if (serviceFound && nextService !== '') break;
-      if (serviceFound && thisShiftId == currentRoster[s].shiftId && currentRoster[s].dutyType.substring(0, 4) == 'TRIP') {
-        nextService = currentRoster[s].dutyName;
-      } else if (serviceFound && thisShiftId == currentRoster[s].shiftId && currentRoster[s].dutyType == 'SOF') {
-        nextService = currentRoster[s].dutyName;
+      if (serviceFound && thisShiftId == currentRosterDuties[s].shiftId && currentRosterDuties[s].dutyType.substring(0, 4) == 'TRIP') {
+        nextService = currentRosterDuties[s].dutyName;
+      } else if (serviceFound && thisShiftId == currentRosterDuties[s].shiftId && currentRosterDuties[s].dutyType == 'SOF') {
+        nextService = currentRosterDuties[s].dutyName;
       };
-      if (!serviceFound && currentRoster[s].dutyName == serviceId && currentRoster[s].shiftType == workType) {
+      if (!serviceFound && currentRosterDuties[s].dutyName == serviceId && currentRosterDuties[s].shiftType == workType) {
         serviceFound = true;
-        thisShiftId = currentRoster[s].shiftId;
+        thisShiftId = currentRosterDuties[s].shiftId;
       };
     };
     return nextService;

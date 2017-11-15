@@ -30,7 +30,7 @@
   </head>
 
   <body ng-app="pilot">
-    <div ng-controller="AppController" style="height: 96%; overflow: hidden;">
+    <div ng-controller="AppController"><!-- style="height: 96%; overflow: hidden;"> -->
       <!--left menu-->
       <div class="sideNav" layout="column" ng-cloak>
         <side-nav></side-nav>
@@ -48,6 +48,13 @@
             </div>
           </div>
         </div>
+        <div ng-switch-when="Units">
+          <div class="Units">
+            <div class="container-fluid">
+                <units-table currentUnitList="currentUnitList"></units-table>
+            </div>
+          </div>
+        </div>
         <div ng-switch-when="overview">
           <div>
             <div class="container-fluid">
@@ -59,13 +66,6 @@
           <div>
             <div class="container-fluid">
                 <bus-calc></bus-calc>
-            </div>
-          </div>
-        </div>
-        <div ng-switch-when="berthing">
-          <div>
-            <div class="container-fluid">
-                <berthing berthing="berthing"></berthing>
             </div>
           </div>
         </div>
@@ -94,6 +94,7 @@
 
     <!-- Services -->
     <script src="public/js/services/currentServices.js"></script>
+    <script src="public/js/services/currentUnitList.js"></script>
     <script src="public/js/services/getRoster.js"></script>
     <script src="public/js/services/berthing.js"></script>
     <script src="public/js/services/busCalcPost.js"></script>
@@ -104,6 +105,7 @@
     <script src="public/js/directives/dayRoster.js"></script>
     <script src="public/js/directives/serviceDetail.js"></script>
     <script src="public/js/directives/varianceTable.js"></script>
+    <script src="public/js/directives/unitsTable.js"></script>
     <script src="public/js/directives/overview.js"></script>
     <script src="public/js/directives/busCalc.js"></script>
     <script src="public/js/directives/berthing.js"></script>
