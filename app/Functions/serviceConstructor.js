@@ -164,7 +164,11 @@ module.exports = function Service(CurrentMoment,
   this.trainManagerShift = getStaffShiftFromVDSRoster(this.serviceId, currentRosterDuties, 'TM');
   this.locomotiveEngineerShift = getStaffShiftFromVDSRoster(this.serviceId, currentRosterDuties, 'LE');
   this.trainManager = getStaffFromVDSRoster(this.serviceId, currentRosterDuties, 'TM');
+  this.trainManagerExists = this.trainManager !== '';
   this.locomotiveEngineer = getStaffFromVDSRoster(this.serviceId, currentRosterDuties, 'LE');
+  this.locomotiveEngineerExists = this.locomotiveEngineer !== '';
+  this.passengerOperatorList = getPOListFromVDSRoster(this.serviceId, currentRosterDuties);
+  this.passengerOperatorExists = this.passengerOperatorList.length !== 0;
   // pax count estimation
   this.passengerEstimation = getPaxAtStation(this.calendarId, this.serviceId, this.line, this.prevTimedStation, this.direction);
 
@@ -372,13 +376,17 @@ module.exports = function Service(CurrentMoment,
         NextService: this.NextService,
         NextTime: this.NextTimeString,
         LE: this.locomotiveEngineer,
+        LEExists: this.locomotiveEngineerExists,
         LEShift: this.locomotiveEngineerShift,
         LENextService: this.LENextService, 
         LENextServiceTime: this.LENextServiceTimeString,
         TM: this.trainManager,
+        TMExists: this.trainManagerExists,
         TMShift: this.trainManagerShift,
         TMNextService: this.TMNextService,
         TMNextServiceTime: this.TMNextServiceTimeString,
+        passengerOperatorList: this.passengerOperatorList,
+        POExists: this.passengerOperatorExists,
         passengerEstimation: this.passengerEstimation,
         statusMessage: this.statusMessage,
         statusArray: this.statusArray,
@@ -624,6 +632,31 @@ module.exports = function Service(CurrentMoment,
       };
     };
     return shift;
+  };
+  /**
+   * searches a current roster object
+   * returns list of Passenger Operators
+   * @param {string} serviceId
+   * @param {array} currentRosterDuties
+   * @param {string} workType
+   * @return {string}
+   */
+  function getPOListFromVDSRoster(serviceId, currentRosterDuties) {
+    let PassOps = [];
+
+    if (currentRosterDuties == undefined || currentRosterDuties.length == 0) {
+      return PassOps;
+    };
+    for (s = 0; s < currentRosterDuties.length; s++) {
+      if (currentRosterDuties[s].dutyName == serviceId && currentRosterDuties[s].shiftType == 'PO') {
+        let PO = {
+          staffName: currentRosterDuties[s].staffName,
+          shiftId: currentRosterDuties[s].shiftId,
+        };
+        PassOps.push(PO);
+      };
+    };
+    return PassOps;
   };
     /**
    * searches a current roster object

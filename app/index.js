@@ -127,8 +127,8 @@ function getnewVDSRosterDuties() {
   setTimeout(getnewVDSRosterDuties, 900 * 1000); // every 15 minutes
 };
 /**
- * uses currentRosterDuties to generate a list of current ASL periods and their end times
- * @return {Array} aslReport
+ * uses currentRosterDuties to generate a list of current asReq periods and their end times
+ * @return {Array} asReqReport
  */
 function getLiveAsReqReport() {
   asReqReport = [];
@@ -270,7 +270,7 @@ function generateCurrentUnitList(GeVisJSON) {
  // itterate through all items in GeVisJSON and use all relevant ones
  for (gj = 0; gj < trains.length; gj++) {
   let train = trains[gj].attributes;
-  if (train.EquipDesc.trim() == 'Matangi Power Car') {
+  if (train.EquipDesc.trim() == 'Matangi Power Car' || train.EquipDesc.trim() == 'Matangi Trailer Car') {
       unit = {
         UnitId: train.VehicleID,
         location: train.Latitude + ' ' + train.Longitude,
@@ -375,7 +375,12 @@ function calendarIDfromDate(DateMoment) {
     };
     return calendarId;
 };
-
+/**
+ * takes a shiftId and retuns all of the duties for the day
+ * 
+ * @param {any} shiftId 
+ * @return {Array} list of duties for a shift
+ */
 function getDayRosterFromShift(shiftId) {
   let dayRoster = [];
   if (currentRosterDuties == undefined || currentRosterDuties.length == 0) {
