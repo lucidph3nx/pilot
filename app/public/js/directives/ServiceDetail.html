@@ -1,7 +1,6 @@
   <section layout="column" flex>
     <md-sidenav class="md-sidenav-right" md-component-id="right" md-whiteframe="4">
 
-
       <div ng-repeat="service in currentServices | filter: { serviceId: selectedID }:true">
         <md-toolbar>
           <h1 class="md-toolbar-tools">{{ service.serviceId }}     {{service.line}}</h1>
