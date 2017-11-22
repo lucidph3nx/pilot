@@ -4,6 +4,8 @@ module.exports = function vdsRosterDuties() {
     const Sequelize = require('sequelize');
     let moment = require('moment-timezone');
     moment().tz('Pacific/Auckland').format();
+    // DB of staff names
+    let betterStaffNames = require('../Data/betterStaffNames');
 
     return new Promise((resolve, reject) => {
       let today = moment().format('YYYY-MM-DD');
@@ -72,6 +74,13 @@ module.exports = function vdsRosterDuties() {
                     dutyType: response[0][trp].dutyType.trim(),
                     dutyStartTime: mpm2m(response[0][trp].timeFrom),
                     dutyEndTime: mpm2m(response[0][trp].timeTo),
+                  };
+                  // fix some of the obscure staff names
+                  for (sn = 0; sn < betterStaffNames.length; sn++) {
+                    if (serviceRoster.staffId == betterStaffNames[sn].staffId) {
+                      serviceRoster.staffName = betterStaffNames[sn].staffName;
+                      break;
+                    };
                   };
                   currentRoster.push(serviceRoster);
                 };
