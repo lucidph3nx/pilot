@@ -48,7 +48,7 @@ module.exports = function vdsRosterDuties() {
         ORDER BY [VDS_TDW].[dbo].[AfPosition].[Matricule], [VDS_TDW].[dbo].[TsMission].[HreDeb]
       `;
 
-      let sequelize = new Sequelize('VDS_TDW', 'WEBSN', 'TDW@2017', {
+      let sequelize = new Sequelize('VDS_TDW', 'WEBSN', 'Welcome1', {
         host: 'APAUPVDSSQL01',
         dialect: 'mssql',
         dialectOptions: {
