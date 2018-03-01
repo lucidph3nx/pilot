@@ -63,7 +63,7 @@ module.exports = function vdsRosterDuties() {
         .then(function(response) {
           for (trp = 0; trp < response[0].length; trp++) {
             serviceRoster = {};
-            if (response[0][trp].dutyName !== null && response[0][trp].dutyType !== 'REC') {
+            if (response[0][trp].dutyName !== null && response[0][trp].dutyType !== null && response[0][trp].dutyType !== 'REC') {
                 serviceRoster = {
                     shiftId: response[0][trp].shiftName.trim(),
                     shiftType: response[0][trp].shiftType.trim(),
