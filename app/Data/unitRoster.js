@@ -62,7 +62,7 @@ module.exports = [
 {'calendarId': '2345', 'journeyId': '5224351748', 'units': 3, 'serviceId': '2621', 'journeyOrder': 3},
 {'calendarId': '2345', 'journeyId': '5224351850', 'units': 4, 'serviceId': '6210', 'journeyOrder': 0},
 {'calendarId': '2345', 'journeyId': '5224351850', 'units': 4, 'serviceId': '6211', 'journeyOrder': 1},
-{'calendarId': '2345', 'journeyId': '5224351952', 'units': 3, 'serviceId': '6213', 'journeyOrder': 0},
+{'calendarId': '2345', 'journeyId': '5224351952', 'units': 4, 'serviceId': '6213', 'journeyOrder': 0},
 {'calendarId': '2345', 'journeyId': '5224352054', 'units': 3, 'serviceId': '6214', 'journeyOrder': 0},
 {'calendarId': '2345', 'journeyId': '5224352054', 'units': 3, 'serviceId': '6215', 'journeyOrder': 1},
 {'calendarId': '2345', 'journeyId': '5224352130', 'units': 1, 'serviceId': '5614', 'journeyOrder': 0},
