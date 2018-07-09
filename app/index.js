@@ -17,6 +17,7 @@ let dummydata = require('./Functions/debugMode')[0];
 let dummytime = require('./Functions/debugMode')[1];
 let Service = require('./Functions/serviceConstructor');
 let calculateBusPax = require('./Functions/busEstimation');
+let timetableQuery = require('./Functions/timetableQuery');
 let vdsRosterDuties = require('./Functions/vdsRosterDuties');
 
 //  for the users project
@@ -70,11 +71,13 @@ let options = {
 let GeVisJSON;
 let currentServices = [];
 let currentUnitList = [];
+let currentTimetable = [];
 let currentRosterDuties = [];
 let currentMoment;
 
 getnewgevisjson();
 getnewVDSRosterDuties();
+getCurrentTimetable();
 /**
  * retrieve up to date json from GeVis API
  */
@@ -113,6 +116,16 @@ function getnewgevisjson() {
   });
 
   setTimeout(getnewgevisjson, 10 * 1000);
+};
+/**
+ * retrieve up to date timetable from Compass DB
+ */
+function getCurrentTimetable() {
+  currentTimetable = [];
+  timetableQuery().then((response) => {
+    currentTimetable = response;
+  });
+  setTimeout(getCurrentTimetable, 3600 * 1000); // every 1 hour
 };
 /**
  * retrieve up to date staff roster from VDS DB

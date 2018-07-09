@@ -12,40 +12,9 @@ module.exports = function vdsRosterDuties() {
       let rosterQueryString = `
         DECLARE @ThisDate datetime;
         SET @ThisDate = '`+today+`'
-        
-        SELECT
-        [VDS_TDW].[dbo].[TsTourDate].[Dat] As 'date',
-        [VDS_TDW].[dbo].[AfPosition].[Matricule] As 'staffId',
-        [VDS_TDW].[dbo].[AgPersonne].[Prenom] As 'fName',
-        [VDS_TDW].[dbo].[AgPersonne].[Nom] As 'lName',
-        [VDS_TDW].[dbo].[TsTour].[NomTour] As 'shiftName',
-        [VDS_TDW].[dbo].[TsTour].[CodCatPersonnel] As 'shiftType',
-        [VDS_TDW].[dbo].[TsMission].[LibMission] As 'dutyName',
-        [VDS_TDW].[dbo].[TsMission].[TypeTravail] As 'dutyType',
-        [VDS_TDW].[dbo].[TsMission].[HreDeb] As 'timeFrom',
-        [VDS_TDW].[dbo].[TsMission].[HreFin] As 'timeTo'
-        
-        FROM [VDS_TDW].[dbo].[TsTourDate]
-        
-        JOIN [VDS_TDW].[dbo].[TsTour] ON
-        [VDS_TDW].[dbo].[TsTourDate].[SeqTour] = [VDS_TDW].[dbo].[TsTour].[SeqTour]
-        
-        JOIN [VDS_TDW].[dbo].[TsMissionTour] ON
-        [VDS_TDW].[dbo].[TsTourDate].[SeqTour] = [VDS_TDW].[dbo].[TsMissionTour].[SeqTour]
-        
-        JOIN [VDS_TDW].[dbo].[TsMission] ON
-        [VDS_TDW].[dbo].[TsMission].[SeqMission] = [VDS_TDW].[dbo].[TsMissionTour].[SeqMission]
-
-        JOIN [VDS_TDW].[dbo].[AfPosition] ON
-        [VDS_TDW].[dbo].[AfPosition].[SeqTourReal] = [VDS_TDW].[dbo].[TsMissionTour].[SeqTour]
-        
-        JOIN [VDS_TDW].[dbo].[AgPersonne] ON
-        [VDS_TDW].[dbo].[AgPersonne].[Matricule] = [VDS_TDW].[dbo].[AfPosition].[Matricule]
-        
-        WHERE [VDS_TDW].[dbo].[TsTourDate].[Dat] = @ThisDate
-        AND [VDS_TDW].[dbo].[AfPosition].[DatPosition] = @ThisDate
-        
-        ORDER BY [VDS_TDW].[dbo].[AfPosition].[Matricule], [VDS_TDW].[dbo].[TsMission].[HreDeb]
+        SELECT * FROM [VDS_TDW].[WEBSN].[actualDuties]
+        WHERE [date] = @ThisDate
+        ORDER BY [date], [staffId], [minutesFrom]
       `;
 
       let sequelize = new Sequelize('VDS_TDW', 'WEBSN', 'Welcome1', {
@@ -68,12 +37,12 @@ module.exports = function vdsRosterDuties() {
                     shiftId: response[0][trp].shiftName.trim(),
                     shiftType: response[0][trp].shiftType.trim(),
                     staffId: response[0][trp].staffId.trim(),
-                    staffName: response[0][trp].fName.trim() +
-                    ' ' + response[0][trp].lName.trim(),
+                    staffName: response[0][trp].firstName.trim() +
+                    ' ' + response[0][trp].lastName.trim(),
                     dutyName: response[0][trp].dutyName.trim(),
                     dutyType: response[0][trp].dutyType.trim(),
-                    dutyStartTime: mpm2m(response[0][trp].timeFrom),
-                    dutyEndTime: mpm2m(response[0][trp].timeTo),
+                    dutyStartTime: mpm2m(response[0][trp].minutesFrom),
+                    dutyEndTime: mpm2m(response[0][trp].minutesTo),
                   };
                   // fix some of the obscure staff names
                   for (sn = 0; sn < betterStaffNames.length; sn++) {
