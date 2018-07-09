@@ -48,6 +48,7 @@ module.exports = function timetableQuery() {
             [Compass].[COMPASS].[TDW_LOOKUPS4].[CODE] = [Compass].[COMPASS].[TDW_Timetables_Detail].[TT_LINE]
             WHERE [Compass].[COMPASS].[TDW_LOOKUPS4].[TABLEID] = 44
             AND [Compass].[COMPASS].[TDW_Timetables_Detail].[TT_ID] = @timetableId
+            ORDER BY blockId, arrives
         `;
 
         let sequelize = new Sequelize('Compass', 'TDW-Compass', 'wx38tt2018', {
@@ -69,10 +70,10 @@ module.exports = function timetableQuery() {
                     direction: response[0][tp].direction,
                     blockId: response[0][tp].blockId,
                     units: response[0][tp].units,
-                    arrives: spm2m(response[0][tp].arrives),
-                    departs: spm2m(response[0][tp].departs),
+                    arrives: cps2m(response[0][tp].arrives),
+                    departs: cps2m(response[0][tp].departs),
                     station: response[0][tp].station,
-                    stationSequence: response[0][tp].stationSequence,
+                    stationSequence: (response[0][tp].stationSequence -1),
                   };
                   currentTimetable.push(timingPoint);
                 };
@@ -82,18 +83,17 @@ module.exports = function timetableQuery() {
       );
     });
   /**
-   * Takes a time in sec past midnight
+   * Takes a time Compass format
    * Converts it into a moment object
-   * @param {string} secondsPastMidnight 
+   * @param {string} compasstime 
    * @return {object} - Moment object
    */
-  function spm2m(secondsPastMidnight) {
+  function cps2m(compasstime) {
     let thisMoment = moment();
-    thisMoment.set('hour', 0);
-    thisMoment.set('minute', 0);
-    thisMoment.set('seconds', 0);
+    thisMoment.set('hour', compasstime.substring(0, 2));
+    thisMoment.set('minute', compasstime.substring(2, 4));
+    thisMoment.set('second', compasstime.substring(4, 6));
     thisMoment.set('miliseconds', 0);
-    thisMoment.add(secondsPastMidnight, 'seconds');
     return thisMoment;
   };
 };

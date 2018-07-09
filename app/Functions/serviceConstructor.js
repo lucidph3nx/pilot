@@ -25,7 +25,8 @@ module.exports = function Service(CurrentMoment,
                                   locationAge,
                                   varianceKiwirail,
                                   lat, lon,
-                                  currentRosterDuties) {
+                                  currentRosterDuties,
+                                  currentTimetable) {
   this.currenttime = moment(CurrentMoment);
   this.serviceId = serviceId.trim();
   this.serviceDescription = serviceDescription.trim();
@@ -43,9 +44,10 @@ module.exports = function Service(CurrentMoment,
   this.secondUnit = secondUnit;
   this.secondUnitLat = secondUnitLat;
   this.secondUnitLon = secondUnitLon;
-  this.cars = getCarsUnitRoster(this.serviceId, this.calendarId);
-  this.journeyId = getJourneyUnitRoster(this.serviceId, this.calendarId)[0];
-  this.journeyOrder = getJourneyUnitRoster(this.serviceId, this.calendarId)[1];
+  this.cars = getCarsCurrentTimetable(this.serviceId); // getCarsUnitRoster(this.serviceId, this.calendarId);
+  this.blockId = getBlockIdCurrentTimetable(this.serviceId); // intended to replace this.journeyId and this.journeyOrder
+  // this.journeyId = getJourneyUnitRoster(this.serviceId, this.calendarId)[0];
+  // this.journeyOrder = getJourneyUnitRoster(this.serviceId, this.calendarId)[1];
   this.speed = speed;
   this.compass = compass;
   this.moving = (speed >= 1);
@@ -55,8 +57,7 @@ module.exports = function Service(CurrentMoment,
     parseInt(this.location_age.toString().split(':')[1]);
   this.varianceKiwirail = gevisvariancefix(varianceKiwirail);
   this.departs = getdepartsfromtimetable(this.serviceDate,
-                                         this.serviceId,
-                                         this.calendarId);
+                                         this.serviceId);
   if (this.departs == '') {
     this.departsString = '';
   } else {
@@ -130,12 +131,11 @@ module.exports = function Service(CurrentMoment,
     }
     };
   // prev service
-  this.LastService = getUnitLastService(this.serviceId, this.calendarId);
+  this.LastService = getUnitLastService(this.serviceId, this.blockId);
   // next service details
-  this.NextService = getUnitNextService(this.serviceId, this.calendarId);
+  this.NextService = getUnitNextService(this.serviceId, this.blockId);
   this.NextTime = getdepartsfromtimetable(this.serviceDate,
-                                          this.NextService,
-                                          this.calendarId);
+                                          this.NextService);
   if (this.NextTime == '') {
     this.NextTimeString = '';
   } else {
@@ -145,8 +145,7 @@ module.exports = function Service(CurrentMoment,
   // staff next service details
   this.LENextService = getStaffNextServiceFromVDSRoster(this.serviceId, currentRosterDuties, 'LE');
   this.LENextServiceTime = getdepartsfromtimetable(this.serviceDate,
-                                                   this.LENextService,
-                                                   this.calendarId);
+                                                   this.LENextService);
   if (this.LENextServiceTime == '') {
     this.LENextServiceTimeString = '';
   } else {
@@ -154,7 +153,7 @@ module.exports = function Service(CurrentMoment,
   };
   this.LENextTurnaround = getTurnaroundFrom2Times(this.arrives, this.LENextServiceTime);
   this.TMNextService = getStaffNextServiceFromVDSRoster(this.serviceId, currentRosterDuties, 'TM');
-  this.TMNextServiceTime = getdepartsfromtimetable(this.serviceDate, this.TMNextService, this.calendarId);
+  this.TMNextServiceTime = getdepartsfromtimetable(this.serviceDate, this.TMNextService);
   if (this.TMNextServiceTime == '') {
     this.TMNextServiceTimeString = '';
   } else {
@@ -419,6 +418,44 @@ module.exports = function Service(CurrentMoment,
     return cars;
     };
   };
+    /**
+   *performs a look up of the current timetable to get the number of cars
+   * @param {string} serviceId 
+   * @return {integer} - number of cars
+   */
+  function getCarsCurrentTimetable(serviceId) {
+    let cars;
+    for (s = 0; s < currentTimetable.length; s++) {
+        if (currentTimetable[s].serviceId == serviceId) {
+          cars = currentTimetable[s].units;
+          break;
+        }
+    };
+    if (cars == '' || cars == 0 || typeof cars == 'undefined') {
+      return '';
+    } else {
+    return cars;
+    };
+  };
+    /**
+   *performs a look up of the current timetable to get the block Id
+   * @param {string} serviceId 
+   * @return {integer} - number of cars
+   */
+  function getBlockIdCurrentTimetable(serviceId) {
+    let blockId;
+    for (s = 0; s < currentTimetable.length; s++) {
+        if (currentTimetable[s].serviceId == serviceId) {
+          blockId = currentTimetable[s].blockId;
+          break;
+        }
+    };
+    if (blockId == '' || blockId == 0 || typeof blockId == 'undefined') {
+      return '';
+    } else {
+    return blockId;
+    };
+  };
   /**
    * performs a look up of the Unit Roster to get the Journey Id and Order
    * @param {string} serviceId 
@@ -448,13 +485,13 @@ module.exports = function Service(CurrentMoment,
    * @param {string} calendarId - 1/2345/6/7
    * @return {object} - departure time moment object
    */
-  function getdepartsfromtimetable(serviceDate, serviceId, calendarId) {
+  function getdepartsfromtimetable(serviceDate, serviceId) {
     let departs;
-    for (st = 0; st < stopTimes.length; st++) {
-      if (serviceId == stopTimes[st].serviceId) {
+    for (st = 0; st < currentTimetable.length; st++) {
+      if (serviceId == currentTimetable[st].serviceId) {
         // get start and end time
-        if (stopTimes[st].stationSequence == 0) {
-          departs = twp2m(stopTimes[st].departs);
+        if (currentTimetable[st].stationSequence == 0) {
+          departs = currentTimetable[st].departs;
           departs.set({'year': serviceDate.year(),
                        'month': serviceDate.month(),
                        'day': serviceDate.day()});
@@ -688,16 +725,15 @@ module.exports = function Service(CurrentMoment,
     return nextService;
   };
 
-  function getUnitNextService(serviceId, calendarId) {
-    // trying to solve the 5 min to midnight error
-    if (serviceId == undefined || calendarId == undefined) {
+  function getUnitNextService(serviceId, blockId) {
+    if (serviceId == undefined || blockId == undefined) {
       return '';
     };
     let NextService;
-    for (s = 0; s <unitRoster.length; s++) {
-      if (unitRoster[s].calendarId == calendarId && unitRoster[s].serviceId == (serviceId)) {
-          if (unitRoster[s+1] !== undefined && unitRoster[s].journeyId == unitRoster[s+1].journeyId) {
-            NextService = unitRoster[s+1].serviceId;
+    for (s = 0; s < currentTimetable.length; s++) {
+      if (currentTimetable[s+1] !== undefined && currentTimetable[s].blockId == blockId && currentTimetable[s].serviceId == (serviceId) && currentTimetable[s+1].serviceId !== serviceId) {
+          if (currentTimetable[s+1] !== undefined && currentTimetable[s].blockId == currentTimetable[s+1].blockId) {
+            NextService = currentTimetable[s+1].serviceId;
           } else {
             NextService = '';
           };
@@ -705,12 +741,12 @@ module.exports = function Service(CurrentMoment,
     };
     return NextService;
   };
-  function getUnitLastService(serviceId, calendarId) {
+  function getUnitLastService(serviceId, blockId) {
     let LastService;
-    for (s = 0; s <unitRoster.length; s++) {
-      if (unitRoster[s].calendarId == calendarId && unitRoster[s].serviceId == (serviceId)) {
-          if (unitRoster[s-1] !== undefined && unitRoster[s].journeyId == unitRoster[s-1].journeyId) {
-            LastService = unitRoster[s-1].serviceId;
+    for (s = 0; s <currentTimetable.length; s++) {
+      if (currentTimetable[s].blockId == blockId && currentTimetable[s].serviceId == (serviceId)) {
+          if (currentTimetable[s-1] !== undefined && currentTimetable[s].blockId == currentTimetable[s-1].blockId) {
+            LastService = currentTimetable[s-1].serviceId;
           } else {
             LastService = '';
           };

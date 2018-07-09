@@ -72,6 +72,7 @@ let GeVisJSON;
 let currentServices = [];
 let currentUnitList = [];
 let currentTimetable = [];
+let currenttripSheet = [];
 let currentRosterDuties = [];
 let currentMoment;
 
@@ -107,8 +108,10 @@ function getnewgevisjson() {
           console.log('GeVis loaded ok @ '
                       + moment().format('YYYY-MM-DD HH:mm:ss'));
       };
+      if (currentTimetable !== []) {
       generateCurrentServices(GeVisJSON);
       generateCurrentUnitList(GeVisJSON);
+      }
     };
     });
   }).on('error', function(e) {
@@ -121,10 +124,27 @@ function getnewgevisjson() {
  * retrieve up to date timetable from Compass DB
  */
 function getCurrentTimetable() {
-  currentTimetable = [];
   timetableQuery().then((response) => {
+    currentTimetable = [];
+    currenttripSheet = [];
     currentTimetable = response;
-  });
+    /* get current trip sheet (list of services)*/
+    let tripLine = [];
+    if (currentTimetable == []) {
+      currenttripSheet = [];
+    } else {
+      for (tp = 0; tp < currentTimetable.length; tp++) {
+        if (currentTimetable[tp].serviceId !== tripLine.serviceId) {
+        tripline = {
+          serviceId: currentTimetable[tp].serviceId,
+          line: currentTimetable[tp].line,
+          direction: currentTimetable[tp].direction,
+        };
+        currenttripSheet.push(tripline);
+      }
+  }
+}
+});
   setTimeout(getCurrentTimetable, 3600 * 1000); // every 1 hour
 };
 /**
@@ -222,18 +242,17 @@ function generateCurrentServices(GeVisJSON) {
                                   varianceKiwirail,
                                   lat,
                                   long,
-                                  currentRosterDuties);
+                                  currentRosterDuties,
+                                  currentTimetable);
         currentServices.push(service.web());
     };
   }
-  //  get current caledar_id for timetable search
-  let calendarId = calendarIDfromDate(currentMoment);
   //  get all timetabled services that are not active
   let alreadyTracking = false;
   let serviceDate = moment().format('YYYYMMDD');
 
   //  cycle through services
-  let servicesToday = tripSheet.filter((tripSheet) => tripSheet.calendarId == calendarId);
+  let servicesToday = currenttripSheet;
   for (st = 0; st < servicesToday.length; st++) {
     let timetabledService = servicesToday[st];
     alreadyTracking = false;
