@@ -42,6 +42,7 @@ module.exports = function timetableQuery() {
               ,[TT_TIME_DEPART] As 'departs'
               ,[TT_LOCATION] As 'station'
               ,[TT_SEQUENCE] As 'stationSequence'
+              ,@dayType As 'dayType'
           FROM [Compass].[COMPASS].[TDW_Timetables_Detail]
             /* needs to join this lookup table to get real line names*/
             JOIN [Compass].[COMPASS].[TDW_LOOKUPS4] ON
@@ -74,6 +75,7 @@ module.exports = function timetableQuery() {
                     departs: cps2m(response[0][tp].departs),
                     station: response[0][tp].station,
                     stationSequence: (response[0][tp].stationSequence -1),
+                    dayType: response[0][tp].dayType,
                   };
                   currentTimetable.push(timingPoint);
                 };

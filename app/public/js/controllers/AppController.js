@@ -1,4 +1,4 @@
-app.controller('AppController', ['$scope', 'currentServices', 'currentUnitList', 'getRoster', 'berthing', 'stationList', 'busCalcPost', '$interval', '$timeout', '$mdDialog', '$mdSidenav', '$mdpDatePicker', '$mdpTimePicker', function($scope, currentServices, currentUnitList, getRoster, berthing, stationList, busCalcPost, $interval, $timeout, $mdDialog, $mdSidenav, $mdpDatePicker, $mdpTimePicker) {
+app.controller('AppController', ['$scope', 'currentServices', 'currentUnitList', 'getRoster', 'stationList', '$interval', '$timeout', '$mdDialog', '$mdSidenav', '$mdpDatePicker', '$mdpTimePicker', function($scope, currentServices, currentUnitList, getRoster, stationList, $interval, $timeout, $mdDialog, $mdSidenav, $mdpDatePicker, $mdpTimePicker) {
     let extraseconds;
     let initialtime;
 
@@ -92,27 +92,6 @@ app.controller('AppController', ['$scope', 'currentServices', 'currentUnitList',
         n = n + '';
         return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
       }
-
-    // data for bus calc
-    $scope.busCalcData = {
-      Time: new Date(moment()),
-      Line: 'HVL',
-      Station1: undefined,
-      Station2: undefined,
-    };
-    $scope.resetBusCalcTime = function() {
-      $scope.busCalcData.Time = new Date(moment());
-    };
-    $scope.stationList = stationList.stationList;
-    $scope.busCalcResults = {};
-    $scope.busCalcResultsVisible = false;
-    $scope.calculateBus = function() {
-      // $scope.busCalcData.Time = moment($scope.busCalcData.Time);
-        busCalcPost.getCalc($scope.busCalcData).success(function(data, status) {
-          $scope.busCalcResults = data;
-          $scope.busCalcResultsVisible = true;
-        });
-    };
     // mPicker stuff for bus calc
   this.showTimePicker = function(ev) {
     $mdpTimePicker($scope.busCalcData.Time, {
