@@ -18,7 +18,8 @@ module.exports = function Service(CurrentMoment,
                                   varianceKiwirail,
                                   lat, lon,
                                   currentRosterDuties,
-                                  currentTimetable) {
+                                  currentTimetable,
+                                  currentBusReplacementList) {
   this.currenttime = moment(CurrentMoment);
   this.serviceId = serviceId.trim();
   this.serviceDescription = serviceDescription.trim();
@@ -151,7 +152,17 @@ module.exports = function Service(CurrentMoment,
       };
       // filter out things found from timetable
       if (this.linkedUnit == '') {
-        TempStatus = 'No Linked Unit';
+        let busReplaced = false;
+        for (let svc = 0; svc < currentBusReplacementList.length; svc++) {
+          if (currentBusReplacementList[svc].serviceId == this.serviceId) {
+            busReplaced = true;
+          }
+        }
+        if (busReplaced) {
+          TempStatus = 'Bus Replaced';
+        } else {
+          TempStatus = 'No Linked Unit';
+        }
         if (StatusMessage == '' && stopProcessing == false) {
           StatusMessage = TempStatus;
         };
@@ -217,7 +228,7 @@ module.exports = function Service(CurrentMoment,
         let tunnelExceptionsList = [
           {tunnelName: 'Rimutaka', line: 'WRL', statusMessage: 'In Rimutaka Tunnel', southStation: 'MAYM', northStation: 'FEAT', secondsTheshold: 900},
           {tunnelName: 'Rimutaka', line: 'WRL', statusMessage: 'In Rimutaka Tunnel', southStation: 'UPPE', northStation: 'FEAT', secondsTheshold: 900}, // needed to be in twice due to tracking issues
-          {tunnelName: 'Tawa Tunnel', line: 'KPL', statusMessage: 'In Tawa Tunnel', southStation: 'TAKA', northStation: 'KAIW', secondsTheshold: 600},
+          {tunnelName: 'Tawa Tunnel', line: 'KPL', statusMessage: 'In Tawa Tunnel', southStation: 'KAIW', northStation: 'TAKA', secondsTheshold: 600},
           {tunnelName: 'Tunnel 1', line: 'KPL', statusMessage: 'In Tunnel 1', southStation: 'KAIW', northStation: 'T2', secondsTheshold: 600},
           {tunnelName: 'Tunnel 2', line: 'KPL', statusMessage: 'In Tunnel 2', southStation: 'T1', northStation: 'TAKA', secondsTheshold: 240},
         ];

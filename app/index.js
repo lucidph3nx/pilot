@@ -9,6 +9,7 @@ moment().tz('Pacific/Auckland').format();
 //  supporting functions
 let Service = require('./Functions/serviceConstructor');
 let timetableQuery = require('./Functions/timetableQuery');
+let busReplacementQuery = require('./Functions/busReplacementQuery');
 let vdsRosterDuties = require('./Functions/vdsRosterDuties');
 
 //  for the users project
@@ -64,12 +65,14 @@ let currentServices = [];
 let currentUnitList = [];
 let currentTimetable = [];
 let currenttripSheet = [];
+let currentBusReplacementList = [];
 let currentRosterDuties = [];
 let currentMoment;
 
 getnewgevisjson();
 getnewVDSRosterDuties();
 getCurrentTimetable();
+getBusReplacedList();
 /**
  * retrieve up to date json from GeVis API
  */
@@ -139,6 +142,20 @@ function getCurrentTimetable() {
   }
 });
   setTimeout(getCurrentTimetable, 3600 * 1000); // every 1 hour
+};
+/**
+ * retrieve up to date bus replacement list from Compass DB
+ */
+function getBusReplacedList() {
+  busReplacementQuery().then((response) => {
+    if (response !== undefined) {
+      currentBusReplacementList = [];
+      currentBusReplacementList = response;
+      // for testing
+      console.log(currentBusReplacementList);
+    };
+  });
+  setTimeout(getCurrentTimetable, 300 * 1000); // every 5 minutes
 };
 /**
  * retrieve up to date staff roster from VDS DB
@@ -232,7 +249,8 @@ function generateCurrentServices(GeVisJSON) {
                                   lat,
                                   long,
                                   currentRosterDuties,
-                                  currentTimetable);
+                                  currentTimetable,
+                                  currentBusReplacementList);
         currentServices.push(service.web());
     };
   }
@@ -267,7 +285,8 @@ function generateCurrentServices(GeVisJSON) {
               0,
               '', '',
               currentRosterDuties,
-              currentTimetable);
+              currentTimetable,
+              currentBusReplacementList);
             // look for previous service and mark if still running
             for (csa = 0; csa < currentServices.length; csa++) {
               if (currentServices[csa].serviceId == service.LastService) {
