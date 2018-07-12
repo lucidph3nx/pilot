@@ -12,45 +12,13 @@ let timetableQuery = require('./Functions/timetableQuery');
 let busReplacementQuery = require('./Functions/busReplacementQuery');
 let vdsRosterDuties = require('./Functions/vdsRosterDuties');
 
-//  for the users project
-let logger = require('morgan');
-let cookieParser = require('cookie-parser');
-let bodyParser = require('body-parser');
-let methodOverride = require('method-override');
-let session = require('express-session');
-let passport = require('passport');
-//  let LocalStrategy = require('passport-local');
-
-// =======pasport=======
-
 // =======express=======
+let bodyParser = require('body-parser');
 // Configure Express
-app.use(logger('tiny'));
-app.use(cookieParser());
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
-app.use(methodOverride('X-HTTP-Method-Override'));
-app.use(session({secret: 'supernova', saveUninitialized: true, resave: true}));
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Session-persisted message middleware
-app.use(function(req, res, next) {
-  let err = req.session.error;
-  let msg = req.session.notice;
-  let success = req.session.success;
-
-  delete req.session.error;
-  delete req.session.success;
-  delete req.session.notice;
-
-  if (err) res.locals.error = err;
-  if (msg) res.locals.notice = msg;
-  if (success) res.locals.success = success;
-
-  next();
-});
-
+app.use(express.json());
+app.use(express.urlencoded());
 
 let options = {
     hostname: 'gis.kiwirail.co.nz',
@@ -151,8 +119,6 @@ function getBusReplacedList() {
     if (response !== undefined) {
       currentBusReplacementList = [];
       currentBusReplacementList = response;
-      // for testing
-      console.log(currentBusReplacementList);
     };
   });
   setTimeout(getCurrentTimetable, 300 * 1000); // every 5 minutes
@@ -192,6 +158,75 @@ function getLiveAsReqReport() {
     };
     return asReqReport;
   };
+};
+/**
+ * Gets a arrivals and departures list for a particular station
+ * @param {string} stationId 4 character stationId
+ * @return {array} running sheet array
+ */
+function getRunningSheetForStation(stationId) {
+  runningSheet = [];
+  serviceEntry = {};
+
+  for (s = 0; s < currentTimetable.length; s++) {
+    if (currentTimetable[s].station == stationId) {
+      // convert direction to human format
+      let runningSheetDirection;
+      if (currentTimetable[s].direction == 'U') {
+        runningSheetDirection = 'UP';
+      } else if (currentTimetable[s].direction == 'D') {
+        runningSheetDirection = 'DOWN';
+      }
+      // get rostered staff
+      let staff = currentRosterDuties.filter((currentRosterDuties) => currentRosterDuties.dutyName == currentTimetable[s].serviceId);
+      let LE = '';
+      let LEShift = '';
+      let TM = '';
+      let TMShift = '';
+      let PO = [];
+      for (st = 0; st < staff.length; st++) {
+        if (staff[st].dutyType == 'TRIP') {
+          LE = staff[st].staffName + ' (' + staff[st].staffId + ')';
+          LEShift = staff[st].shiftId;
+        }
+        if (staff[st].dutyType == 'TRIPT') {
+          TM = staff[st].staffName + ' (' + staff[st].staffId + ')';
+          TMShift = staff[st].shiftId;
+        }
+        if (staff[st].dutyType == 'TRIPP') {
+          PO.push({name: staff[st].staffName + ' (' + staff[st].staffId + ')', shift: staff[st].shiftId});
+        }
+        // catch empty trips incorrectly added as 'SHUNT'
+        if (staff[st].dutyType == 'SHUNT' || staff[st].dutyType == 'OTH') {
+          if (staff[st].shiftType == 'LE' && LE == '') {
+            LE = staff[st].staffName + ' (' + staff[st].staffId + ')';
+            LEShift = staff[st].shiftId;
+          }
+          if (staff[st].shiftType == 'TM' && TM == '') {
+            TM = staff[st].staffName + ' (' + staff[st].staffId + ')';
+            TMShift = staff[st].shiftId;
+          }
+          if (staff[st].shiftType == 'PO' && !PO.includes(staff[st].staffName + ' (' + staff[st].staffId) + ')') {
+            PO.push({name: staff[st].staffName + ' (' + staff[st].staffId + ')', shift: staff[st].shiftId});
+          }
+        }
+      };
+      serviceEntry = {
+        serviceId: currentTimetable[s].serviceId,
+        units: currentTimetable[s].units,
+        direction: runningSheetDirection,
+        arrives: currentTimetable[s].arrives.format('HH:mm'),
+        departs: currentTimetable[s].departs.format('HH:mm'),
+        LE: LE,
+        LEShift: LEShift,
+        TM: TM,
+        TMShift: TMShift,
+        PO: PO,
+      };
+      runningSheet.push(serviceEntry);
+    }
+  }
+  return runningSheet;
 };
 /**
  * Interprets GeVisJSON creates list of all current services
@@ -407,6 +442,14 @@ app.get('/asReqReport', (request, response) => {
   let asReqResponse = getLiveAsReqReport();
   response.writeHead(200, {'Content-Type': 'application/json'}, {cache: false});
   response.write(JSON.stringify(asReqResponse));
+  response.end();
+});
+
+app.get('/runningSheet', (request, response) => {
+  let stationId = request.query.stationId;
+  let runningSheetResponse = getRunningSheetForStation(stationId);
+  response.writeHead(200, {'Content-Type': 'application/json'}, {cache: false});
+  response.write(JSON.stringify(runningSheetResponse));
   response.end();
 });
 

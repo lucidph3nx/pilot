@@ -55,6 +55,13 @@
             </div>
           </div>
         </div>
+        <div ng-switch-when="RunningSheet">
+          <div class="RunningSheet">
+            <div class="container-fluid">
+                <running-sheet runningSheetService="runningSheetService"></running-sheet>
+            </div>
+          </div>
+        </div>
         <div ng-switch-when="overview">
           <div>
             <div class="container-fluid">
@@ -90,6 +97,7 @@
     <script src="public/js/services/currentUnitList.js"></script>
     <script src="public/js/services/getRoster.js"></script>
     <script src="public/js/services/stationList.js"></script>
+    <script src="public/js/services/runningSheetService.js"></script>
 
     <!-- Directives -->
     <script src="public/js/directives/sideNav.js"></script>
@@ -100,6 +108,7 @@
     <script src="public/js/directives/overview.js"></script>
     <script src="public/js/directives/linesDiagram.js"></script>
     <script src="public/js/directives/map.js"></script>
+    <script src="public/js/directives/runningSheet.js"></script>
 
   </body>
 </html>

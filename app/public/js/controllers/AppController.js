@@ -1,4 +1,5 @@
-app.controller('AppController', ['$scope', 'currentServices', 'currentUnitList', 'getRoster', 'stationList', '$interval', '$timeout', '$mdDialog', '$mdSidenav', '$mdpDatePicker', '$mdpTimePicker', function($scope, currentServices, currentUnitList, getRoster, stationList, $interval, $timeout, $mdDialog, $mdSidenav, $mdpDatePicker, $mdpTimePicker) {
+app.controller('AppController', ['$scope', 'currentServices', 'currentUnitList', 'getRoster', 'runningSheetService', 'stationList', '$interval', '$timeout', '$mdDialog', '$mdSidenav', '$mdpDatePicker', '$mdpTimePicker',
+                          function($scope, currentServices, currentUnitList, getRoster, runningSheetService, stationList, $interval, $timeout, $mdDialog, $mdSidenav, $mdpDatePicker, $mdpTimePicker) {
     let extraseconds;
     let initialtime;
 
@@ -123,4 +124,52 @@ app.controller('AppController', ['$scope', 'currentServices', 'currentUnitList',
       $mdDialog.cancel();
     };
   }
+
+
+  $scope.ServicesToShow = {
+    stationId: 'WELL',
+    ShowUp: true,
+    ShowDown: false,
+    AllDay: false,
+  };
+  $scope.runningSheet = [];
+
+  $scope.startRunningSheet = runningSheetService.getRunningSheet($scope.ServicesToShow.stationId).success(function(data, status) {
+    $scope.runningSheet = data.filter(filterByDirection);
+  });
+  $scope.refreshRunningSheet = function() {
+    runningSheetService.getRunningSheet($scope.ServicesToShow.stationId).success(function(data, status) {
+      console.log('refreshed');
+      $scope.runningSheet = data.filter(filterByDirection);
+    });
+  };
+  // for future when i incorporate live data
+  // $interval(function() {
+  //   $scope.refreshRunningSheet();
+  // }, 15000);
+
+  function filterByDirection(service) {
+    if ($scope.ServicesToShow.ShowUp && $scope.ServicesToShow.ShowDown && filterByTime(service)) {
+      return true;
+    } else if ($scope.ServicesToShow.ShowUp && service.direction == 'UP' && filterByTime(service)) {
+      return true;
+    } else if ($scope.ServicesToShow.ShowDown && service.direction == 'DOWN' && filterByTime(service)) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+  function filterByTime(service) {
+    let now = moment();
+    let arrives = moment(service.arrives, 'HH:mm');
+    if ($scope.ServicesToShow.AllDay == false) {
+      if (arrives > moment(now).subtract(10, 'minutes') && arrives < moment(now).add(2, 'hour')) {
+        return true;
+      } else {
+        return false;
+      };
+    } else {
+      return true;
+    }
+  };
 }]);

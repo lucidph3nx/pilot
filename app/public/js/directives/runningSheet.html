@@ -1,0 +1,53 @@
+<md-card>
+    <md-content layout-padding>
+        <md-card-title>
+            <md-card-title-text>
+                <span class="md-headline">Running Sheet per Service</span>
+            </md-card-title-text>
+        </md-card-title>
+        <div layout="row">
+            <md-input-container>
+                <label>Station</label>
+                <input ng-model="ServicesToShow.stationId" md-maxlength="4">
+                <md-button class="md-raised" ng-click="refreshRunningSheet()">Update</md-button>
+            </md-input-container>
+
+        </div>
+        <md-switch ng-model="ServicesToShow.ShowUp" ng-change="refreshRunningSheet()">Show Up</md-switch>
+        <md-switch ng-model="ServicesToShow.ShowDown" ng-change="refreshRunningSheet()">Show Down</md-switch>
+        <md-switch ng-model="ServicesToShow.AllDay" ng-change="refreshRunningSheet()">All Day</md-switch>
+
+    </md-content>
+</md-card>
+<div id="runningSheetTable" class="container-fluid">
+    <div class="row">
+          <div class="col-xl-12">
+          <table id="resultsTable" class="table table-inverse table-hover" style="padding:10px;">
+            <thead id="resultsTableHeader">
+              <tr id="resultsHeaderRow">
+                <th id="trainNumberHeader" class="trainnumber">Train</th>
+                <th id="carsHeader" class="columncenter">Cars</th>
+                <th id="directionHeader">Dir</th>
+                <th id="timeHeader">Arrives</th>
+                <th id="timeHeader">Departs</th>
+                <th id="LEHeader">LE</th>
+                <th id="TMHeader">TM</th>
+                <th id="POHeader">PO</th>
+              </tr>
+            </thead>
+            <tbody>
+            <tr class="varianceTableRow" ng-repeat="services in runningSheet | orderBy:['arrives']:sortReverse">
+              <td id="trainNumberResults" class="trainnumber">{{ services.serviceId }}</td>
+              <td id="carsResults" class="columncenter varianceNormal">{{ services.units }}</td>
+              <td id="directionResults" class="varianceNormal">{{ services.direction }}</td>
+              <td id="timeResults" class="varianceNormal">{{ services.arrives }}</td>
+              <td id="timeResults" class="varianceNormal">{{ services.departs }}</td>
+              <td id="LEResults" class="varianceNormal"><md-button ng-click="showDayRoster($event, services.LEShift)">{{ services.LE }}</md-button></td>
+              <td id="TMResults" class="varianceNormal"><md-button ng-click="showDayRoster($event, services.TMShift)">{{ services.TM }}</md-button></td>
+              <td id="POResults" class="varianceNormal">
+                  <a ng-repeat="PO in services.PO"><md-button ng-click="showDayRoster($event, PO.shift)">{{PO.name}}</md-button></a>
+              </td>
+            </tr>
+          </tbody>
+          </table>
+      </div>
