@@ -40,7 +40,9 @@ module.exports = function vdsRosterDuties() {
                     dutyName: response[0][trp].dutyName.trim(),
                     dutyType: response[0][trp].dutyType.trim(),
                     dutyStartTime: mpm2m(response[0][trp].minutesFrom),
+                    dutyStartTimeString: mpm2m(response[0][trp].minutesFrom).format('HH:mm'),
                     dutyEndTime: mpm2m(response[0][trp].minutesTo),
+                    dutyEndTimeString: mpm2m(response[0][trp].minutesTo).format('HH:mm'),
                   };
                   currentRoster.push(serviceRoster);
                 };
