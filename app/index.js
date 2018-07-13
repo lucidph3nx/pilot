@@ -53,18 +53,14 @@ function getnewgevisjson() {
   });
   response.on('end', function() {
     GotResponse = true;
-
       if (body.substring(0, 1) == '<') {
         console.log('GeVis returned service unavailable');
       } else {
         GeVisJSON = JSON.parse(body);
-        if (body == {'metadata': {'outputSpatialReference': 0},
-                     'features': []}) {
-          console.log('GeVis Vehicles responded empty @'
-                      + moment().format('YYYY-MM-DD HH:mm:ss'));
+        if (body == {'metadata': {'outputSpatialReference': 0}, 'features': []}) {
+          console.log('GeVis Vehicles responded empty @' + moment().format('YYYY-MM-DD HH:mm:ss'));
         } else {
-          console.log('GeVis loaded ok @ '
-                      + moment().format('YYYY-MM-DD HH:mm:ss'));
+          console.log('GeVis loaded ok @ ' + moment().format('YYYY-MM-DD HH:mm:ss'));
       };
       if (currentTimetable !== undefined && currentTimetable.length !== 0) {
         try {
@@ -79,7 +75,6 @@ function getnewgevisjson() {
   }).on('error', function(e) {
     console.log('Got error: ' + e.message);
   });
-
   setTimeout(getnewgevisjson, 10 * 1000);
 };
 /**
@@ -109,7 +104,7 @@ function getCurrentTimetable() {
     }
   }
 });
-  setTimeout(getCurrentTimetable, 3600 * 1000); // every 1 hour
+  setTimeout(getCurrentTimetable, 7200 * 1000); // every 2 hour
 };
 /**
  * retrieve up to date bus replacement list from Compass DB
@@ -131,7 +126,7 @@ function getnewVDSRosterDuties() {
   vdsRosterDuties().then((response) => {
     currentRosterDuties = response;
   });
-  setTimeout(getnewVDSRosterDuties, 900 * 1000); // every 15 minutes
+  setTimeout(getnewVDSRosterDuties, 300 * 1000); // every 15 minutes
 };
 /**
  * uses currentRosterDuties to generate a list of current asReq periods and their end times
@@ -211,12 +206,24 @@ function getRunningSheetForStation(stationId) {
           }
         }
       };
+      // get delay from currentServices
+      let serviceVariance;
+      let serviceStatusArray;
+      for (sv = 0; sv < currentServices.length; sv++) {
+        if (currentTimetable[s].serviceId == currentServices[sv].serviceId) {
+          serviceVariance = currentServices[sv].varianceFriendly;
+          serviceStatusArray = currentServices[sv].statusArray;
+        }
+      }
+
       serviceEntry = {
         serviceId: currentTimetable[s].serviceId,
         units: currentTimetable[s].units,
         direction: runningSheetDirection,
         arrives: currentTimetable[s].arrives.format('HH:mm'),
         departs: currentTimetable[s].departs.format('HH:mm'),
+        variance: serviceVariance,
+        statusArray: serviceStatusArray,
         LE: LE,
         LEShift: LEShift,
         TM: TM,

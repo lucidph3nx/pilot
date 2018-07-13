@@ -30,6 +30,7 @@
                 <th id="directionHeader">Dir</th>
                 <th id="timeHeader">Arrives</th>
                 <th id="timeHeader">Departs</th>
+                <th id="VarianceHeader" class="columncenter">Var</th>
                 <th id="LEHeader">LE</th>
                 <th id="TMHeader">TM</th>
                 <th id="POHeader">PO</th>
@@ -42,6 +43,13 @@
               <td id="directionResults" class="varianceNormal">{{ services.direction }}</td>
               <td id="timeResults" class="varianceNormal">{{ services.arrives }}</td>
               <td id="timeResults" class="varianceNormal">{{ services.departs }}</td>
+              <td id="varianceResults" class="columncenter" ng-class="{
+                'early' : services.statusArray[0] == 'Running Early',
+                'okay' : services.statusArray[0] == 'Running Ok',
+                'late' : services.statusArray[0] == 'Running Late',
+                'verylate' : services.statusArray[0] == 'Running Very Late',
+                'delayrisk' : (services.statusArray[0]).substring(0, 10) == 'Delay Risk',
+              }">{{ services.variance }}</td>
               <td id="LEResults" class="varianceNormal"><md-button ng-click="showDayRoster($event, services.LEShift)">{{ services.LE }}</md-button></td>
               <td id="TMResults" class="varianceNormal"><md-button ng-click="showDayRoster($event, services.TMShift)">{{ services.TM }}</md-button></td>
               <td id="POResults" class="varianceNormal">

@@ -48,18 +48,10 @@ module.exports = function Service(CurrentMoment,
   this.varianceKiwirail = gevisvariancefix(varianceKiwirail);
   this.timetableDetails = getTimetableDetails(this.serviceId, this.serviceDescription, this.kiwirail);
   this.departs = this.timetableDetails.departs;
-  if (this.departs == '') {
-    this.departsString = '';
-  } else {
-    this.departsString = moment(this.departs).format('HH:mm');
-  };
+  this.departsString = this.timetableDetails.departsString;
   this.departed = getdepartedornot(this.currenttime, this.departs);
   this.arrives = this.timetableDetails.arrives;
-  if (this.arrives == '') {
-    this.arrivesString = '';
-  } else {
-    this.arrivesString = moment(this.arrives).format('HH:mm');
-  };
+  this.arrivesString = this.timetableDetails.arrivesString;
   this.origin = this.timetableDetails.origin;
   this.destination = this.timetableDetails.destination;
   this.lat = lat;
@@ -96,6 +88,7 @@ module.exports = function Service(CurrentMoment,
       this.varianceFriendly = 0;
     };
   }
+  this.crewDetails = getCrewDetails(this.serviceId, currentRosterDuties);
   this.LastService = getSequenceUnit(this.serviceId, this.blockId, 'prev');
   this.NextService = getSequenceUnit(this.serviceId, this.blockId, 'next');
   this.NextTime = getTimetableDetails(this.NextService, '', false).departs;
@@ -105,31 +98,6 @@ module.exports = function Service(CurrentMoment,
     this.NextTimeString = moment(this.NextTime).format('HH:mm');
   };
   this.NextTurnaround = getTurnaroundFrom2Times(this.arrives, this.NextTime);
-  // staff next service details
-  this.LENextService = getStaffNextServiceFromVDSRoster(this.serviceId, currentRosterDuties, 'LE');
-  this.LENextServiceTime = getTimetableDetails(this.LENextService, '', false).departs;
-  if (this.LENextServiceTime == '') {
-    this.LENextServiceTimeString = '';
-  } else {
-    this.LENextServiceTimeString = moment(this.LENextServiceTime).format('HH:mm');
-  };
-  this.LENextTurnaround = getTurnaroundFrom2Times(this.arrives, this.LENextServiceTime);
-  this.TMNextService = getStaffNextServiceFromVDSRoster(this.serviceId, currentRosterDuties, 'TM');
-  this.TMNextServiceTime = getTimetableDetails(this.TMNextService, '', false).departs;
-  if (this.TMNextServiceTime == '') {
-    this.TMNextServiceTimeString = '';
-  } else {
-    this.TMNextServiceTimeString = moment(this.TMNextServiceTime).format('HH:mm');
-  };
-  this.TMNextTurnaround = getTurnaroundFrom2Times(this.arrives, this.TMNextServiceTime);
-  this.trainManagerShift = getStaffShiftFromVDSRoster(this.serviceId, currentRosterDuties, 'TM');
-  this.locomotiveEngineerShift = getStaffShiftFromVDSRoster(this.serviceId, currentRosterDuties, 'LE');
-  this.trainManager = getStaffFromVDSRoster(this.serviceId, currentRosterDuties, 'TM');
-  this.trainManagerExists = this.trainManager !== '';
-  this.locomotiveEngineer = getStaffFromVDSRoster(this.serviceId, currentRosterDuties, 'LE');
-  this.locomotiveEngineerExists = this.locomotiveEngineer !== '';
-  this.passengerOperatorList = getPOListFromVDSRoster(this.serviceId, currentRosterDuties);
-  this.passengerOperatorExists = this.passengerOperatorList.length !== 0;
   // generate Status Messages
   // used to be own function, but needed too many variables
       let stopProcessing = false;
@@ -196,25 +164,25 @@ module.exports = function Service(CurrentMoment,
       // compare turnarounds to lateness to look for issues
       if (((this.NextTurnaround != '')
         && (this.NextTurnaround < this.schedule_variance_min))
-      || ((this.LENextTurnaround != '')
+      || ((this.crewDetails.LE.nextService.turnaround != '')
           && (this.le_turnaround < this.schedule_variance_min))
-      || ((this.TMNextTurnaround != '')
-          && (this.TMNextTurnaround < this.schedule_variance_min))) {
+      || ((this.crewDetails.TM.nextService.turnaround != '')
+          && (this.crewDetails.TM.nextService.turnaround < this.schedule_variance_min))) {
         TempStatus = 'Delay Risk:';
 
         if ((this.NextTurnaround < this.schedule_variance_min)) {
           TempStatus = TempStatus + ' Train';
         };
-        if ((this.LENextTurnaround < this.schedule_variance_min)) {
+        if ((this.crewDetails.LE.nextService.turnaround < this.schedule_variance_min)) {
           TempStatus = TempStatus + ' LE';
         };
-        if ((this.TMNextTurnaround < this.schedule_variance_min)) {
+        if ((this.crewDetails.TM.nextService.turnaround < this.schedule_variance_min)) {
           TempStatus = TempStatus + ' TM';
         };
         // check for negative turnarounds and just give an error status
         if ((this.NextTurnaround < 0)
-          || (this.LENextTurnaround < 0)
-          || (this.TMNextTurnaround < 0)) {
+          || (this.crewDetails.LE.nextService.turnaround < 0)
+          || (this.crewDetails.TM.nextService.turnaround < 0)) {
           TempStatus = 'Timetravel Error';
         };
         if (stopProcessing == false) {
@@ -229,8 +197,8 @@ module.exports = function Service(CurrentMoment,
           {tunnelName: 'Rimutaka', line: 'WRL', statusMessage: 'In Rimutaka Tunnel', southStation: 'MAYM', northStation: 'FEAT', secondsTheshold: 900},
           {tunnelName: 'Rimutaka', line: 'WRL', statusMessage: 'In Rimutaka Tunnel', southStation: 'UPPE', northStation: 'FEAT', secondsTheshold: 900}, // needed to be in twice due to tracking issues
           {tunnelName: 'Tawa Tunnel', line: 'KPL', statusMessage: 'In Tawa Tunnel', southStation: 'KAIW', northStation: 'TAKA', secondsTheshold: 600},
-          {tunnelName: 'Tunnel 1', line: 'KPL', statusMessage: 'In Tunnel 1', southStation: 'KAIW', northStation: 'T2', secondsTheshold: 600},
-          {tunnelName: 'Tunnel 2', line: 'KPL', statusMessage: 'In Tunnel 2', southStation: 'T1', northStation: 'TAKA', secondsTheshold: 240},
+          {tunnelName: 'Tunnel 1', line: 'KPL', statusMessage: 'In Tawa Tunnel', southStation: 'KAIW', northStation: 'T2', secondsTheshold: 600},
+          {tunnelName: 'Tunnel 2', line: 'KPL', statusMessage: 'In Tawa Tunnel', southStation: 'T1', northStation: 'TAKA', secondsTheshold: 240},
         ];
         // identify tunnel tracking issues
         if (this.direction == 'UP') {
@@ -324,18 +292,18 @@ module.exports = function Service(CurrentMoment,
       LastService: this.LastService,
       NextService: this.NextService,
       NextTime: this.NextTimeString,
-      LE: this.locomotiveEngineer,
-      LEExists: this.locomotiveEngineerExists,
-      LEShift: this.locomotiveEngineerShift,
-      LENextService: this.LENextService,
-      LENextServiceTime: this.LENextServiceTimeString,
-      TM: this.trainManager,
-      TMExists: this.trainManagerExists,
-      TMShift: this.trainManagerShift,
-      TMNextService: this.TMNextService,
-      TMNextServiceTime: this.TMNextServiceTimeString,
-      passengerOperatorList: this.passengerOperatorList,
-      POExists: this.passengerOperatorExists,
+      LE: this.crewDetails.LE.staffName,
+      LEExists: this.crewDetails.LEExists,
+      LEShift: this.crewDetails.LE.shiftId,
+      LENextService: this.crewDetails.LE.nextService.serviceId,
+      LENextServiceTime: this.crewDetails.LE.nextService.serviceDepartsString,
+      TM: this.crewDetails.TM.staffName,
+      TMExists: this.crewDetails.TMExists,
+      TMShift: this.crewDetails.TM.shiftId,
+      TMNextService: this.crewDetails.TM.nextService.serviceId,
+      TMNextServiceTime: this.crewDetails.TM.nextService.serviceDepartsString,
+      passengerOperatorList: this.crewDetails.PO,
+      POExists: this.crewDetails.POExists,
       statusMessage: this.statusMessage,
       statusArray: this.statusArray,
       lat: this.lat,
@@ -383,14 +351,18 @@ module.exports = function Service(CurrentMoment,
    */
   function getTimetableDetails(serviceId, description, kiwirailBoolean) {
     let departs = '';
+    let departsString = '';
     let origin = '';
     let arrives = '';
+    let arrivesString = '';
     let destination = '';
     let servicePoints = currentTimetable.filter((currentTimetable) => currentTimetable.serviceId == serviceId);
     if (servicePoints.length !== 0) {
       departs = servicePoints[0].departs;
+      departsString = servicePoints[0].departs.format('HH:mm');
       origin = servicePoints[0].station;
       arrives = servicePoints[servicePoints.length-1].arrives;
+      arrivesString = servicePoints[servicePoints.length-1].arrives.format('HH:mm');
       destination = servicePoints[servicePoints.length-1].station;
     } else if (kiwirailBoolean) {
       let KiwiRailDetails = guessKiwiRailTimetableDetails()[0];
@@ -399,8 +371,10 @@ module.exports = function Service(CurrentMoment,
     }
     let timetableDetails = {
       departs: departs,
+      departsString: departsString,
       origin: origin,
       arrives: arrives,
+      arrivesString: arrivesString,
       destination: destination,
     };
     return timetableDetails;
@@ -468,99 +442,105 @@ module.exports = function Service(CurrentMoment,
       return false;
     }
   };
-  /**
-   * searches a current roster object
-   * returns actual staff names
-   * @param {string} serviceId
-   * @param {array} currentRosterDuties
-   * @param {string} workType
-   * @return {string}
-   */
-  function getStaffFromVDSRoster(serviceId, currentRosterDuties, workType) {
-    let staff = '';
-    if (currentRosterDuties == undefined || currentRosterDuties.length == 0) {
-      return staff;
-    };
-    for (s = 0; s < currentRosterDuties.length; s++) {
-      if (currentRosterDuties[s].dutyName == serviceId && currentRosterDuties[s].shiftType == workType) {
-        staff = currentRosterDuties[s].staffName;
-      };
-    };
-    return staff;
-  };
-  /**
-   * searches a current roster object
-   * returns actual staff names
-   * @param {string} serviceId
-   * @param {array} currentRosterDuties
-   * @param {string} workType
-   * @return {string}
-   */
-  function getStaffShiftFromVDSRoster(serviceId, currentRosterDuties, workType) {
-    let shift = '';
-    if (currentRosterDuties == undefined || currentRosterDuties.length == 0) {
-      return shift;
-    };
-    for (s = 0; s < currentRosterDuties.length; s++) {
-      if (currentRosterDuties[s].dutyName == serviceId && currentRosterDuties[s].shiftType == workType) {
-        shift = currentRosterDuties[s].shiftId;
-      };
-    };
-    return shift;
-  };
-  /**
-   * searches a current roster object
-   * returns list of Passenger Operators
-   * @param {string} serviceId
-   * @param {array} currentRosterDuties
-   * @param {string} workType
-   * @return {string}
-   */
-  function getPOListFromVDSRoster(serviceId, currentRosterDuties) {
-    let PassOps = [];
 
-    if (currentRosterDuties == undefined || currentRosterDuties.length == 0) {
-      return PassOps;
-    };
-    for (s = 0; s < currentRosterDuties.length; s++) {
-      if (currentRosterDuties[s].dutyName == serviceId && currentRosterDuties[s].shiftType == 'PO') {
-        let PO = {
-          staffName: currentRosterDuties[s].staffName,
-          shiftId: currentRosterDuties[s].shiftId,
-        };
-        PassOps.push(PO);
-      };
-    };
-    return PassOps;
-  };
-    /**
-   * searches a current roster object
-   * returns actual staff names
+  /**
+   * Takes a service Id and the currentRosterDuties
+   * gives back a crew object
    * @param {string} serviceId
    * @param {array} currentRosterDuties
-   * @param {string} workType
-   * @return {string}
+   * @return {object} crew details object
    */
-  function getStaffNextServiceFromVDSRoster(serviceId, currentRosterDuties, workType) {
-    let nextService = '';
-    let thisShiftId = '';
-    let serviceFound = false;
-    if (currentRosterDuties == undefined || currentRosterDuties.length == 0) {
-      return nextService;
-    };
-    for (s = 0; s < currentRosterDuties.length; s++) {
-      if (serviceFound && nextService !== '') break;
-      if (serviceFound && thisShiftId == currentRosterDuties[s].shiftId && currentRosterDuties[s].dutyType.substring(0, 4) == 'TRIP') {
-        nextService = currentRosterDuties[s].dutyName;
-      } else if (serviceFound && thisShiftId == currentRosterDuties[s].shiftId && currentRosterDuties[s].dutyType == 'SOF') {
-        nextService = currentRosterDuties[s].dutyName;
+  function getCrewDetails(serviceId, currentRosterDuties) {
+      let crewDetails = {
+        LE: '',
+        LEExists: false,
+        TM: '',
+        TMExists: false,
+        PO: [],
+        POExists: false,
       };
-      if (!serviceFound && currentRosterDuties[s].dutyName == serviceId && currentRosterDuties[s].shiftType == workType) {
-        serviceFound = true;
-        thisShiftId = currentRosterDuties[s].shiftId;
-      };
-    };
-    return nextService;
+      let serviceRosterItems = currentRosterDuties.filter((currentRosterDuties) => currentRosterDuties.dutyName == serviceId);
+      for (c = 0; c < serviceRosterItems.length; c++) {
+        if (serviceRosterItems[c].dutyType == 'TRIP') {
+          crewDetails.LE = new CrewMember(serviceRosterItems[c].shiftId);
+          crewDetails.LEExists = true;
+        }
+        if (serviceRosterItems[c].dutyType == 'TRIPT') {
+          crewDetails.TM = new CrewMember(serviceRosterItems[c].shiftId);
+          crewDetails.TMExists = true;
+        }
+        if (serviceRosterItems[c].dutyType == 'TRIPP') {
+          crewDetails.PO.push(new CrewMember(serviceRosterItems[c].shiftId));
+          crewDetails.POExists = true;
+        }
+      }
+      // extra pass to find things marked as 'OTH' and 'SHUNT'
+      for (c = 0; c < serviceRosterItems.length; c++) {
+        if (crewDetails.LE == '' && serviceRosterItems[c].shiftType == 'LE') {
+          crewDetails.LE = new CrewMember(serviceRosterItems[c].shiftId);
+          crewDetails.LEExists = true;
+        }
+        if (crewDetails.TM == '' && serviceRosterItems[c].shiftType == 'TM') {
+          crewDetails.TM = new CrewMember(serviceRosterItems[c].shiftId);
+          crewDetails.TMExists = true;
+        }
+        if (crewDetails.PO == [] && serviceRosterItems[c].shiftType == 'PO') {
+          crewDetails.PO.push(new CrewMember(serviceRosterItems[c].shiftId));
+          crewDetails.POExists = true;
+        }
+      }
+      // fill in blank staff if none exist
+      if (crewDetails.LE == '') {
+        crewDetails.LE = new CrewMember('BLANK');
+      }
+      if (crewDetails.TM == '') {
+        crewDetails.TM = new CrewMember('BLANK');
+      }
+      return crewDetails;
+      /**
+       * CrewMember Constructor
+       * @param {string} shiftId or 'BLANK' to generate a blank crewmember
+       */
+      function CrewMember(shiftId) {
+        if (shiftId == 'BLANK') {
+          this.staffId = '';
+          this.staffName = '';
+          this.shiftId = '';
+          this.nextService = {
+            serviceId: '',
+            serviceDeparts: '',
+            serviceDepartsString: '',
+          };
+        } else {
+          let staffRosterItems = currentRosterDuties.filter((currentRosterDuties) => currentRosterDuties.shiftId == shiftId);
+          this.staffId = staffRosterItems[0].staffId;
+          this.staffName = staffRosterItems[0].staffName;
+          this.shiftId = shiftId;
+          let dutyIndex = staffRosterItems.findIndex(function(duty) {
+            return duty.dutyName == serviceId;
+          });
+          for (d = dutyIndex+1; d < staffRosterItems.length; d++) {
+            if (staffRosterItems[d].dutyType.substring(0, 4) == 'TRIP') {
+              this.nextService = {
+                serviceId: staffRosterItems[d].dutyName,
+                serviceDeparts: getTimetableDetails(staffRosterItems[d].dutyName, '', false).departs,
+                serviceDepartsString: moment(getTimetableDetails(staffRosterItems[d].dutyName, '', false).departs).format('HH:mm'),
+                turnaround: getTurnaroundFrom2Times(getTimetableDetails(serviceId, '', false).arrives, getTimetableDetails(staffRosterItems[d].dutyName, '', false).departs),
+              };
+              break;
+            };
+            if (staffRosterItems[d].dutyType == 'SOF') {
+              this.nextService = {
+                serviceId: staffRosterItems[d].dutyName,
+                serviceDeparts: '',
+                serviceDepartsString: '',
+                turnaround: '',
+              };
+              break;
+            };
+          }
+        }
+      }
   };
   /**
    * returns the next or previous service for that unit roster block
@@ -602,10 +582,11 @@ module.exports = function Service(CurrentMoment,
    * @return {number} turnaround time
    */
   function getTurnaroundFrom2Times(EndTime, StartTime) {
-    if (EndTime == '' || StartTime == '') {
+    if (EndTime == '' || StartTime == '' || EndTime == undefined || StartTime == undefined) {
       return '';
     };
-    let Turnaround = moment.duration(StartTime.diff(EndTime));
+    let Turnaround = moment.duration(StartTime.diff(EndTime))/1000/60;
+
     if (Turnaround == NaN) {
       Turnaround = '';
     };
