@@ -49,7 +49,7 @@ module.exports = function timetableQuery() {
             [Compass].[COMPASS].[TDW_LOOKUPS4].[CODE] = [Compass].[COMPASS].[TDW_Timetables_Detail].[TT_LINE]
             WHERE [Compass].[COMPASS].[TDW_LOOKUPS4].[TABLEID] = 44
             AND [Compass].[COMPASS].[TDW_Timetables_Detail].[TT_ID] = @timetableId
-            ORDER BY blockId, arrives
+            ORDER BY blockId, serviceId, stationSequence
         `;
 
         let sequelize = new Sequelize('Compass', 'TDW-Compass', 'wx38tt2018', {
