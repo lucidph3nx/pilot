@@ -93,7 +93,10 @@ body {
   font-weight: bold;
   background-color: #c00000;
 }
-
+.vdserror{
+  color: #c00000;
+  font-weight: bold;
+}
 .storageroad{
   color: yellow;
   font-weight: bold;

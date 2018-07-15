@@ -144,25 +144,32 @@ module.exports = function Service(CurrentMoment,
         };
         stopProcessing = true;
       }
+      // check for duplicate shiftnames error
+      if (this.crewDetails.TM.shiftId !== '' && this.crewDetails.LE.shiftId == this.crewDetails.TM.shiftId) {
+        TempStatus = 'VDS Error';
+        StatusMessage = TempStatus;
+        StatusArray[0] = TempStatus;
+        stopProcessing = true;
+      };
       // the early/late status generation
-      if (this.varianceFriendly < -1.5 && this.kiwirail == false) {
+      if (!stopProcessing && this.varianceFriendly < -1.5 && this.kiwirail == false) {
           TempStatus = 'Running Early';
           StatusArray[0] = TempStatus;
-      } else if (this.varianceFriendly <5 && this.kiwirail == false) {
+      } else if (!stopProcessing && this.varianceFriendly <5 && this.kiwirail == false) {
           TempStatus = 'Running Ok';
           StatusArray[0] = TempStatus;
-      } else if (this.varianceFriendly <15 && this.kiwirail == false) {
+      } else if (!stopProcessing && this.varianceFriendly <15 && this.kiwirail == false) {
           TempStatus = 'Running Late';
           StatusArray[0] = TempStatus;
-      } else if (this.varianceFriendly >=15 && this.kiwirail == false) {
+      } else if (!stopProcessing && this.varianceFriendly >=15 && this.kiwirail == false) {
           TempStatus = 'Running Very Late';
           StatusArray[0] = TempStatus;
       };
-      if (StatusMessage == '' && stopProcessing == false) {
+      if (StatusMessage == '' && !stopProcessing) {
         StatusMessage = TempStatus;
       };
       // compare turnarounds to lateness to look for issues
-      if (((this.NextTurnaround != '')
+      if (!stopProcessing && ((this.NextTurnaround != '')
         && (this.NextTurnaround < this.schedule_variance_min))
       || ((this.crewDetails.LE.nextService.turnaround != '')
           && (this.le_turnaround < this.schedule_variance_min))
@@ -257,7 +264,7 @@ module.exports = function Service(CurrentMoment,
       TempStatus = 'Stopped between stations';
       StatusArray[2] = TempStatus;
   };
-  if (StatusMessage == '' && stopProcessing == false) {
+  if (StatusMessage == '' && !stopProcessing) {
     StatusMessage = TempStatus;
   };
   stopProcessing = true;

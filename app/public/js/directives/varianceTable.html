@@ -79,6 +79,7 @@
                                                 'stoppedbetweenstations' : service.statusMessage == 'Stopped between stations',
                                                 'storageroad' : service.statusMessage == 'In Storage Road' || service.statusMessage == 'In Turn Back Road',
                                                 'prevdelayed' : service.statusMessage == 'Previous Service Delayed',
+                                                'vdserror' : service.statusMessage == 'VDS Error',
                                               }">{{ service.statusMessage }}</td>
             <!--<img ng-src="{{ service.statusMessage == ' }}"/>-->
           </tr>

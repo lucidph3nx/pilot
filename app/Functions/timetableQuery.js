@@ -32,34 +32,33 @@ module.exports = function timetableQuery() {
             AND [TT_DAY_TYPE] = @dayType
             ORDER BY [TT_SINGLE_DAY_ONLY] DESC)
         
-        SELECT [TT_TDN] As 'serviceId'
-              ,a.serviceDeparts AS 'serviceDeparts'
-              ,[Compass].[COMPASS].[TDW_LOOKUPS4].[DESCRIPTION] As 'line'
-              ,[TT_DIRECTION] As 'direction'
-              ,[TT_BLOCK] As 'blockId'
-              ,[TT_PLANNED_TRAIN_TYPE] As 'units'
-              ,[TT_TRAFFIC_TYPE] As 'serviceType'
-              ,[TT_TIME_ARRIVAL] As 'arrives'
-              ,[TT_TIME_DEPART] As 'departs'
-              ,[TT_LOCATION] As 'station'
-              ,[TT_SEQUENCE] As 'stationSequence'
-              ,@dayType As 'dayType'
-          FROM [Compass].[COMPASS].[TDW_Timetables_Detail]
-            /* needs to join this lookup table to get real line names*/
-            JOIN [Compass].[COMPASS].[TDW_LOOKUPS4] ON
-            [Compass].[COMPASS].[TDW_LOOKUPS4].[CODE] = [Compass].[COMPASS].[TDW_Timetables_Detail].[TT_LINE]
+            SELECT [TT_TDN] As 'serviceId'
+            ,a.serviceDeparts AS 'serviceDeparts'
+            ,[Compass].[COMPASS].[TDW_LOOKUPS4].[DESCRIPTION] As 'line'
+            ,[TT_DIRECTION] As 'direction'
+            ,[TT_BLOCK] As 'blockId'
+            ,[TT_PLANNED_TRAIN_TYPE] As 'units'
+            ,[TT_TRAFFIC_TYPE] As 'serviceType'
+            ,[TT_TIME_ARRIVAL] As 'arrives'
+            ,[TT_TIME_DEPART] As 'departs'
+            ,[TT_LOCATION] As 'station'
+            ,[TT_SEQUENCE] As 'stationSequence'
+            ,@dayType As 'dayType'
+        FROM [Compass].[COMPASS].[TDW_Timetables_Detail]
+        /* needs to join this lookup table to get real line names*/
+        JOIN [Compass].[COMPASS].[TDW_LOOKUPS4] ON
+        [Compass].[COMPASS].[TDW_LOOKUPS4].[CODE] = [Compass].[COMPASS].[TDW_Timetables_Detail].[TT_LINE]
+        /* gets the departure time for the service for later sorting */
         LEFT JOIN 
-          (SELECT [TT_TDN] AS 'ATDN', [TT_TIME_ARRIVAL] AS 'serviceDeparts'
+        (SELECT [TT_TDN] AS 'ATDN', [TT_TIME_ARRIVAL] AS 'serviceDeparts'
             FROM [Compass].[COMPASS].[TDW_Timetables_Detail]
             WHERE [TT_ID] = @timetableId
-            AND [TT_LOCATION] != 'CONS'
             AND [TT_SEQUENCE] = 1
-          ) AS a
+        ) AS a
         ON [Compass].[COMPASS].[TDW_Timetables_Detail].[TT_TDN] = a.ATDN
-              WHERE [Compass].[COMPASS].[TDW_LOOKUPS4].[TABLEID] = 44
-              AND [Compass].[COMPASS].[TDW_Timetables_Detail].[TT_ID] = @timetableId
-              AND [TT_LOCATION] != 'CONS'
-              ORDER BY blockId, serviceDeparts, serviceId, stationSequence
+    WHERE [Compass].[COMPASS].[TDW_LOOKUPS4].[TABLEID] = 44
+    AND [Compass].[COMPASS].[TDW_Timetables_Detail].[TT_ID] = @timetableId
+    ORDER BY blockId, serviceDeparts, serviceId, stationSequence
         `;
 
         let sequelize = new Sequelize('Compass', 'TDW-Compass', 'wx38tt2018', {
