@@ -33,6 +33,7 @@ module.exports = function timetableQuery() {
             ORDER BY [TT_SINGLE_DAY_ONLY] DESC)
         
         SELECT [TT_TDN] As 'serviceId'
+              ,a.serviceDeparts AS 'serviceDeparts'
               ,[Compass].[COMPASS].[TDW_LOOKUPS4].[DESCRIPTION] As 'line'
               ,[TT_DIRECTION] As 'direction'
               ,[TT_BLOCK] As 'blockId'
@@ -47,9 +48,18 @@ module.exports = function timetableQuery() {
             /* needs to join this lookup table to get real line names*/
             JOIN [Compass].[COMPASS].[TDW_LOOKUPS4] ON
             [Compass].[COMPASS].[TDW_LOOKUPS4].[CODE] = [Compass].[COMPASS].[TDW_Timetables_Detail].[TT_LINE]
-            WHERE [Compass].[COMPASS].[TDW_LOOKUPS4].[TABLEID] = 44
-            AND [Compass].[COMPASS].[TDW_Timetables_Detail].[TT_ID] = @timetableId
-            ORDER BY blockId, serviceId, stationSequence
+        LEFT JOIN 
+          (SELECT [TT_TDN] AS 'ATDN', [TT_TIME_ARRIVAL] AS 'serviceDeparts'
+            FROM [Compass].[COMPASS].[TDW_Timetables_Detail]
+            WHERE [TT_ID] = @timetableId
+            AND [TT_LOCATION] != 'CONS'
+            AND [TT_SEQUENCE] = 1
+          ) AS a
+        ON [Compass].[COMPASS].[TDW_Timetables_Detail].[TT_TDN] = a.ATDN
+              WHERE [Compass].[COMPASS].[TDW_LOOKUPS4].[TABLEID] = 44
+              AND [Compass].[COMPASS].[TDW_Timetables_Detail].[TT_ID] = @timetableId
+              AND [TT_LOCATION] != 'CONS'
+              ORDER BY blockId, serviceDeparts, serviceId, stationSequence
         `;
 
         let sequelize = new Sequelize('Compass', 'TDW-Compass', 'wx38tt2018', {

@@ -476,11 +476,11 @@ module.exports = function Service(CurrentMoment,
       }
       // extra pass to find things marked as 'OTH' and 'SHUNT'
       for (c = 0; c < serviceRosterItems.length; c++) {
-        if (crewDetails.LE == '' && serviceRosterItems[c].shiftType == 'LE') {
+        if (crewDetails.LE.staffName == undefined && serviceRosterItems[c].shiftType == 'LE') {
           crewDetails.LE = new CrewMember(serviceRosterItems[c].shiftId);
           crewDetails.LEExists = true;
         }
-        if (crewDetails.TM == '' && serviceRosterItems[c].shiftType == 'TM') {
+        if (crewDetails.TM.staffName == undefined && serviceRosterItems[c].shiftType == 'TM') {
           crewDetails.TM = new CrewMember(serviceRosterItems[c].shiftId);
           crewDetails.TMExists = true;
         }
@@ -490,10 +490,10 @@ module.exports = function Service(CurrentMoment,
         }
       }
       // fill in blank staff if none exist
-      if (crewDetails.LE == '') {
+      if (crewDetails.LE.staffName == undefined) {
         crewDetails.LE = new CrewMember('BLANK');
       }
-      if (crewDetails.TM == '') {
+      if (crewDetails.TM.staffName == undefined) {
         crewDetails.TM = new CrewMember('BLANK');
       }
       return crewDetails;
@@ -510,12 +510,19 @@ module.exports = function Service(CurrentMoment,
             serviceId: '',
             serviceDeparts: '',
             serviceDepartsString: '',
+            turnaround: '',
           };
         } else {
           let staffRosterItems = currentRosterDuties.filter((currentRosterDuties) => currentRosterDuties.shiftId == shiftId);
           this.staffId = staffRosterItems[0].staffId;
           this.staffName = staffRosterItems[0].staffName;
           this.shiftId = shiftId;
+          this.nextService = {
+            serviceId: '',
+            serviceDeparts: '',
+            serviceDepartsString: '',
+            turnaround: '',
+          };
           let dutyIndex = staffRosterItems.findIndex(function(duty) {
             return duty.dutyName == serviceId;
           });
@@ -556,7 +563,7 @@ module.exports = function Service(CurrentMoment,
     let seqServiceId;
     for (s = 0; s < currentTimetable.length; s++) {
       if (nextOrPrev == 'prev') {
-        if (currentTimetable[s].blockId == blockId && currentTimetable[s].serviceId == serviceId && currentTimetable[s-1].serviceId !== serviceId) {
+        if (currentTimetable[s].blockId == blockId && currentTimetable[s].serviceId == serviceId && currentTimetable[s-1] !== undefined && currentTimetable[s-1].serviceId !== serviceId) {
           if (currentTimetable[s-1] !== undefined && currentTimetable[s].blockId == currentTimetable[s-1].blockId) {
             seqServiceId = currentTimetable[s-1].serviceId;
           } else {
@@ -586,6 +593,10 @@ module.exports = function Service(CurrentMoment,
       return '';
     };
     let Turnaround = moment.duration(StartTime.diff(EndTime))/1000/60;
+
+    if (Turnaround < 0) {
+      console.log(Turnaround);
+    }
 
     if (Turnaround == NaN) {
       Turnaround = '';
