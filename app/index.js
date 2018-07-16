@@ -63,12 +63,12 @@ function getnewgevisjson() {
           console.log('GeVis loaded ok @ ' + moment().format('YYYY-MM-DD HH:mm:ss'));
       };
       if (currentTimetable !== undefined && currentTimetable.length !== 0) {
-        //try {
+        try {
           generateCurrentServices(GeVisJSON);
           generateCurrentUnitList(GeVisJSON);
-        //} catch (error) {
-        // console.error(error);
-        //}
+        } catch (error) {
+         console.error(error);
+        }
       }
     };
     });
