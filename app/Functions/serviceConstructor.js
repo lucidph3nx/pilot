@@ -145,11 +145,11 @@ module.exports = function Service(CurrentMoment,
         stopProcessing = true;
       }
       // check for duplicate shiftnames error
-      if (this.crewDetails.TM.shiftId !== '' && this.crewDetails.LE.shiftId == this.crewDetails.TM.shiftId) {
-        TempStatus = 'VDS Error';
-        StatusMessage = TempStatus;
-        stopProcessing = true;
-      };
+      // if (this.crewDetails.TM.shiftId !== '' && this.crewDetails.LE.shiftId == this.crewDetails.TM.shiftId) {
+      //   TempStatus = 'VDS Error';
+      //   StatusMessage = TempStatus;
+      //   stopProcessing = true;
+      // };
       // the early/late status generation
       if (this.varianceFriendly < -1.5 && this.kiwirail == false) {
           TempStatus = 'Running Early';
@@ -168,34 +168,34 @@ module.exports = function Service(CurrentMoment,
         StatusMessage = TempStatus;
       };
       // compare turnarounds to lateness to look for issues
-      if (!stopProcessing && ((this.NextTurnaround != '')
-        && (this.NextTurnaround < this.schedule_variance_min))
-      || ((this.crewDetails.LE.nextService.turnaround != '')
-          && (this.le_turnaround < this.schedule_variance_min))
-      || ((this.crewDetails.TM.nextService.turnaround != '')
-          && (this.crewDetails.TM.nextService.turnaround < this.schedule_variance_min))) {
-        TempStatus = 'Delay Risk:';
+      // if (!stopProcessing && ((this.NextTurnaround != '')
+      //   && (this.NextTurnaround < this.schedule_variance_min))
+      // || ((this.crewDetails.LE.nextService.turnaround != '')
+      //     && (this.le_turnaround < this.schedule_variance_min))
+      // || ((this.crewDetails.TM.nextService.turnaround != '')
+      //     && (this.crewDetails.TM.nextService.turnaround < this.schedule_variance_min))) {
+      //   TempStatus = 'Delay Risk:';
 
-        if ((this.NextTurnaround < this.schedule_variance_min)) {
-          TempStatus = TempStatus + ' Train';
-        };
-        if ((this.crewDetails.LE.nextService.turnaround < this.schedule_variance_min)) {
-          TempStatus = TempStatus + ' LE';
-        };
-        if ((this.crewDetails.TM.nextService.turnaround < this.schedule_variance_min)) {
-          TempStatus = TempStatus + ' TM';
-        };
-        // check for negative turnarounds and just give an error status
-        if ((this.NextTurnaround < 0)
-          || (this.crewDetails.LE.nextService.turnaround < 0)
-          || (this.crewDetails.TM.nextService.turnaround < 0)) {
-          TempStatus = 'Timetravel Error';
-        };
-        if (stopProcessing == false) {
-          StatusMessage = TempStatus;
-        };
-        stopProcessing = true;
-      };
+      //   if ((this.NextTurnaround < this.schedule_variance_min)) {
+      //     TempStatus = TempStatus + ' Train';
+      //   };
+      //   if ((this.crewDetails.LE.nextService.turnaround < this.schedule_variance_min)) {
+      //     TempStatus = TempStatus + ' LE';
+      //   };
+      //   if ((this.crewDetails.TM.nextService.turnaround < this.schedule_variance_min)) {
+      //     TempStatus = TempStatus + ' TM';
+      //   };
+      //   // check for negative turnarounds and just give an error status
+      //   if ((this.NextTurnaround < 0)
+      //     || (this.crewDetails.LE.nextService.turnaround < 0)
+      //     || (this.crewDetails.TM.nextService.turnaround < 0)) {
+      //     TempStatus = 'Timetravel Error';
+      //   };
+      //   if (stopProcessing == false) {
+      //     StatusMessage = TempStatus;
+      //   };
+      //   stopProcessing = true;
+      // };
       // look at linking issues
       if (this.location_age_seconds >=180 && this.kiwirail == false) {
         TempStatus = '';

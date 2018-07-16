@@ -10,36 +10,18 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
-    <!--chart angular scripts
-    <script src="public/js/Chart.js"></script>
-    <script src="public/js/angular-chart.js"></script>-->
-    <script src="https://rawgit.com/daniel-nagy/md-data-table/master/dist/md-data-table.js"></script>
     <script type="text/javascript" src="https://momentjs.com/downloads/moment.min.js"></script>
     <script type="text/javascript" src="https://momentjs.com/downloads/moment-timezone-with-data.min.js"></script>
     <script> moment().tz("Pacific/Auckland").format()</script>
-    <script type="text/javascript" src="https://rawgit.com/mpicciolli/angular-material-picker/master/dist/mdPickers.min.js"></script>
-    <!--google maps api-->
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBR_gFUCm1tgXrLUKeObS_grVyO3G-Tl24"></script>
     <!-- css stuff-->
     <link href="public/css/main.css" rel="stylesheet"/>
     <link href="public/css/lineDiagram.css" rel="stylesheet"/>
     <link href="public/css/mdPickers.min.css" rel="stylesheet"/>
-
     <!-- Angular Material Library -->
     <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
   </head>
-
   <body ng-app="pilot">
-    <div ng-controller="AppController"><!-- style="height: 96%; overflow: hidden;"> -->
-      <!--left menu-->
-      <div class="sideNav" layout="column" ng-cloak>
-        <side-nav></side-nav>
-      </div>
-      <!--right service detail-->
-      <div class="sideNav" layout="column" ng-cloak>
-        <service-detail></service-detail>
-      </div>
-
+    <div ng-controller="AppController">
       <div ng-switch="toShow" style="height: 100%; overflow: hidden;">
         <div ng-switch-when="Variance">
           <div class="Variance">
@@ -48,67 +30,14 @@
             </div>
           </div>
         </div>
-        <div ng-switch-when="Units">
-          <div class="Units">
-            <div class="container-fluid">
-                <units-table currentUnitList="currentUnitList"></units-table>
-            </div>
-          </div>
-        </div>
-        <div ng-switch-when="RunningSheet">
-          <div class="RunningSheet">
-            <div class="container-fluid">
-                <running-sheet runningSheetService="runningSheetService"></running-sheet>
-            </div>
-          </div>
-        </div>
-        <div ng-switch-when="overview">
-          <div>
-            <div class="container-fluid">
-                <overview currentServices="currentServices"></overview>
-            </div>
-          </div>
-        </div>
-        <div ng-switch-when="Map" style="height: 100%;">
-          <div class="Map" style="height: 100%;">
-            <div map="" currentServices="currentServices" style="height: 100%;"></div>
-                <!--<map currentServices="currentServices"></map>-->
-            </div>
-        </div>
-        <div ng-switch-when="LinesDiagram">
-          <div class="LinesDiagram">
-            <div class="container-fluid">
-                <lines-diagram currentServices="currentServices"></lines-diagram>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
-
     <!-- Modules -->
     <script src="public/js/app.js"></script>
-
     <!-- Controllers -->
     <script src="public/js/controllers/AppController.js"></script>
-
     <!-- Services -->
     <script src="public/js/services/currentServices.js"></script>
-    <script src="public/js/services/currentUnitList.js"></script>
-    <script src="public/js/services/getRoster.js"></script>
-    <script src="public/js/services/stationList.js"></script>
-    <script src="public/js/services/runningSheetService.js"></script>
-
     <!-- Directives -->
-    <script src="public/js/directives/sideNav.js"></script>
-    <script src="public/js/directives/dayRoster.js"></script>
-    <script src="public/js/directives/serviceDetail.js"></script>
     <script src="public/js/directives/varianceTable.js"></script>
-    <script src="public/js/directives/unitsTable.js"></script>
-    <script src="public/js/directives/overview.js"></script>
-    <script src="public/js/directives/linesDiagram.js"></script>
-    <script src="public/js/directives/map.js"></script>
-    <script src="public/js/directives/runningSheet.js"></script>
-
   </body>
 </html>

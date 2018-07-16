@@ -1,7 +1,5 @@
-app.directive('varianceTable', function(){
+app.directive('varianceTable', function() {
   return {
-    /*restrict: 'E',
-    scope: true,*/
-    templateUrl: 'public/js/directives/varianceTable.html'
+    templateUrl: 'public/js/directives/varianceTable.html',
   };
 });
