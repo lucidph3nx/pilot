@@ -36,6 +36,7 @@
                                                   'storageroad' : service.statusMessage == 'In Storage Road' || service.statusMessage == 'In Turn Back Road',
                                                   'prevdelayed' : service.statusMessage == 'Previous Service Delayed',
                                                   'arriving' : service.statusMessage == 'Arriving',
+                                                  'vdserror' : service.statusMessage == 'VDS Error',
                                                   }">{{ service.serviceId }}</td>
             <td id="carsResults" class="columncenter varianceNormal">{{ service.cars }}</td>
             <!--<td id="lineResults" class="varianceNormal">{{ service.line }}</td>

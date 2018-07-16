@@ -148,20 +148,19 @@ module.exports = function Service(CurrentMoment,
       if (this.crewDetails.TM.shiftId !== '' && this.crewDetails.LE.shiftId == this.crewDetails.TM.shiftId) {
         TempStatus = 'VDS Error';
         StatusMessage = TempStatus;
-        StatusArray[0] = TempStatus;
         stopProcessing = true;
       };
       // the early/late status generation
-      if (!stopProcessing && this.varianceFriendly < -1.5 && this.kiwirail == false) {
+      if (this.varianceFriendly < -1.5 && this.kiwirail == false) {
           TempStatus = 'Running Early';
           StatusArray[0] = TempStatus;
-      } else if (!stopProcessing && this.varianceFriendly <5 && this.kiwirail == false) {
+      } else if (this.varianceFriendly <5 && this.kiwirail == false) {
           TempStatus = 'Running Ok';
           StatusArray[0] = TempStatus;
-      } else if (!stopProcessing && this.varianceFriendly <15 && this.kiwirail == false) {
+      } else if (this.varianceFriendly <15 && this.kiwirail == false) {
           TempStatus = 'Running Late';
           StatusArray[0] = TempStatus;
-      } else if (!stopProcessing && this.varianceFriendly >=15 && this.kiwirail == false) {
+      } else if (this.varianceFriendly >=15 && this.kiwirail == false) {
           TempStatus = 'Running Very Late';
           StatusArray[0] = TempStatus;
       };
